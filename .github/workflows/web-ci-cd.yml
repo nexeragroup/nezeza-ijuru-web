@@ -1,83 +1,255 @@
 name: Nezeza Ijuru Web CI/CD
 
+# =============================================================================
+# TRIGGERS
+# =============================================================================
+
 on:
   pull_request:
     branches:
       - main
       - production
+
   push:
     branches:
       - main
       - production
+
   workflow_dispatch:
 
+# =============================================================================
+# CONCURRENCY
+# =============================================================================
+#
+# Do not run two deployments/build pipelines for the same branch at once.
+# We deliberately do NOT cancel an already-running production deployment.
+#
 concurrency:
-  group: nezeza-ijuru-web-${{ github.ref }}
+  group: nezeza-ijuru-web-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+# =============================================================================
+# GLOBAL ENVIRONMENT
+# =============================================================================
+
 env:
+  CI: true
+
   REGISTRY: ghcr.io
+
+  # Example:
+  # ghcr.io/nexera-group/nezeza-ijuru-client
   IMAGE_NAME: ghcr.io/${{ github.repository }}
 
+  # Keep this aligned with package.json and Dockerfile.
+  PNPM_VERSION: 12.3.4
+
+# Default permissions are deliberately minimal.
 permissions:
   contents: read
 
+# =============================================================================
+# JOBS
+# =============================================================================
+
 jobs:
+
+  # ===========================================================================
+  # QUALITY
+  # ===========================================================================
+  #
+  # Runs:
+  #   - Pull requests
+  #   - main pushes
+  #   - production pushes
+  #   - manual workflow runs
+  #
+  # Nothing can build until this job succeeds.
+  #
   quality:
-    name: Typecheck and proxy tests
+    name: Quality checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
+
+      # -----------------------------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------------------------
+
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # -----------------------------------------------------------------------
+      # Node.js
+      #
+      # IMPORTANT:
+      # package-manager-cache: false prevents setup-node from trying to invoke
+      # pnpm before pnpm/action-setup has installed it.
+      #
+      # Node version comes from .nvmrc.
+      # -----------------------------------------------------------------------
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
+
+      # -----------------------------------------------------------------------
+      # pnpm
+      #
+      # pnpm is installed AFTER Node.
+      #
+      # pnpm/action-setup handles the pnpm store cache itself, so setup-node
+      # does not need to know anything about pnpm caching.
+      # -----------------------------------------------------------------------
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 12.3.4
+          version: ${{ env.PNPM_VERSION }}
+          cache: true
+
+      # -----------------------------------------------------------------------
+      # Verify toolchain
+      # -----------------------------------------------------------------------
+
+      - name: Verify Node.js and pnpm versions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          echo "Node.js:"
+          node --version
+
+          echo "pnpm:"
+          pnpm --version
+
+          actual_pnpm_version="$(pnpm --version)"
+
+          if [[ "${actual_pnpm_version}" != "${PNPM_VERSION}" ]]; then
+            echo "::error::Expected pnpm ${PNPM_VERSION}, got ${actual_pnpm_version}"
+            exit 1
+          fi
+
+      # -----------------------------------------------------------------------
+      # Dependencies
+      # -----------------------------------------------------------------------
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck application and templates
-        run: |
-          pnpm exec tsc -p tsconfig.app.json --noEmit
-          pnpm exec ngc -p tsconfig.app.json --noEmit
+      # -----------------------------------------------------------------------
+      # TypeScript + Angular compiler
+      # -----------------------------------------------------------------------
+
+      - name: Typecheck TypeScript
+        run: pnpm exec tsc -p tsconfig.app.json --noEmit
+
+      - name: Typecheck Angular templates
+        run: pnpm exec ngc -p tsconfig.app.json --noEmit
+
+      # -----------------------------------------------------------------------
+      # Tests
+      # -----------------------------------------------------------------------
 
       - name: Test API proxy
         run: pnpm test:proxy
 
+
+  # ===========================================================================
+  # BUILD
+  # ===========================================================================
+  #
+  # Pull request:
+  #   Build Docker image but DO NOT push it.
+  #
+  # main:
+  #   Build and publish image but DO NOT deploy production.
+  #
+  # production:
+  #   Build, publish and allow production deployment.
+  #
   build:
-    name: Build and publish production image
-    needs: quality
+    name: Build production image
+    needs:
+      - quality
+
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     permissions:
       contents: read
       packages: write
+
     outputs:
       image-name: ${{ steps.image.outputs.name }}
       image-tag: ${{ steps.image.outputs.tag }}
+
     steps:
+
+      # -----------------------------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------------------------
+
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # -----------------------------------------------------------------------
+      # Generate immutable image metadata
+      #
+      # Example:
+      #
+      # ghcr.io/nexera-group/nezeza-ijuru-client:
+      # sha-0a6e62e40d1...
+      #
+      # GitHub SHA gives every deployment a traceable image.
+      # -----------------------------------------------------------------------
 
       - name: Generate image metadata
         id: image
         shell: bash
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+
           image_name="${IMAGE_NAME,,}"
           image_tag="sha-${GITHUB_SHA}"
-          echo "name=${image_name}" >> "${GITHUB_OUTPUT}"
-          echo "tag=${image_tag}" >> "${GITHUB_OUTPUT}"
-          echo "Image: ${image_name}:${image_tag}"
+
+          if [[ ! "${image_name}" =~ ^ghcr\.io/[a-z0-9._/-]+$ ]]; then
+            echo "::error::Invalid GHCR image name: ${image_name}"
+            exit 1
+          fi
+
+          if [[ ! "${image_tag}" =~ ^sha-[a-f0-9]{40}$ ]]; then
+            echo "::error::Invalid immutable image tag: ${image_tag}"
+            exit 1
+          fi
+
+          {
+            echo "name=${image_name}"
+            echo "tag=${image_tag}"
+          } >> "${GITHUB_OUTPUT}"
+
+          echo "Image name: ${image_name}"
+          echo "Image tag:  ${image_tag}"
+
+      # -----------------------------------------------------------------------
+      # Docker Buildx
+      # -----------------------------------------------------------------------
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
+
+      # -----------------------------------------------------------------------
+      # GHCR authentication
+      #
+      # Pull requests NEVER receive registry write credentials.
+      # -----------------------------------------------------------------------
 
       - name: Log in to GitHub Container Registry
         if: github.event_name != 'pull_request'
@@ -87,44 +259,226 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # -----------------------------------------------------------------------
+      # Build image
+      #
+      # PR:
+      #   push=false
+      #
+      # main / production:
+      #   push=true
+      # -----------------------------------------------------------------------
+
       - name: Build and publish production image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
+
           push: ${{ github.event_name != 'pull_request' }}
+
           tags: |
             ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
-          cache-from: type=gha,scope=nezeza-ijuru-web-production
-          cache-to: type=gha,mode=max,scope=nezeza-ijuru-web-production
 
+          cache-from: |
+            type=gha,scope=nezeza-ijuru-web-production
+
+          cache-to: |
+            type=gha,mode=max,scope=nezeza-ijuru-web-production
+
+
+  # ===========================================================================
+  # PRODUCTION DEPLOYMENT
+  # ===========================================================================
+  #
+  # Production deployment occurs ONLY when:
+  #
+  #   branch = production
+  #
+  # Therefore:
+  #
+  # PR -> production   = NO deployment
+  # push -> main       = NO deployment
+  # push -> production = deployment
+  #
+  # Manual workflow must also be launched from production branch.
+  #
   deploy:
     name: Deploy production web
-    needs: build
-    if: github.event_name != 'pull_request'
+
+    needs:
+      - build
+
+    if: >
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/production'
+
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     environment:
       name: production
       url: ${{ vars.WEB_SITE_URL }}
+
     permissions:
       contents: read
+
     steps:
+
+      # -----------------------------------------------------------------------
+      # Checkout
+      #
+      # Required because we need:
+      #
+      # compose.production.yml
+      # scripts/deploy-web.sh
+      # -----------------------------------------------------------------------
+
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # -----------------------------------------------------------------------
+      # Validate production configuration
+      # -----------------------------------------------------------------------
+
+      - name: Validate deployment configuration
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SSH_HOST }}
+          SERVER_USER: ${{ secrets.SSH_USER }}
+          SERVER_PORT: ${{ vars.SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+          SSR_API_BASE_URL: ${{ vars.WEB_SSR_API_BASE_URL }}
+          SITE_URL: ${{ vars.WEB_SITE_URL }}
+          ROBOTS_INDEXABLE: ${{ vars.WEB_ROBOTS_INDEXABLE }}
+
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+
+        run: |
+          set -Eeuo pipefail
+
+          # -------------------------------------------------------------------
+          # Required secrets
+          # -------------------------------------------------------------------
+
+          test -n "${SERVER_HOST}"
+          test -n "${SERVER_USER}"
+          test -n "${SSH_PRIVATE_KEY}"
+          test -n "${SSH_KNOWN_HOSTS}"
+
+          test -n "${GHCR_USERNAME}"
+          test -n "${GHCR_TOKEN}"
+
+          # -------------------------------------------------------------------
+          # Required variables
+          # -------------------------------------------------------------------
+
+          test -n "${SSR_API_BASE_URL}"
+          test -n "${SITE_URL}"
+
+          # -------------------------------------------------------------------
+          # Defaults
+          # -------------------------------------------------------------------
+
+          SERVER_PORT="${SERVER_PORT:-22}"
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
+          ROBOTS_INDEXABLE="${ROBOTS_INDEXABLE:-true}"
+
+          # -------------------------------------------------------------------
+          # SSH port validation
+          # -------------------------------------------------------------------
+
+          if [[ ! "${SERVER_PORT}" =~ ^[0-9]{1,5}$ ]]; then
+            echo "::error::SSH_PORT must be numeric."
+            exit 1
+          fi
+
+          if (( SERVER_PORT < 1 || SERVER_PORT > 65535 )); then
+            echo "::error::SSH_PORT must be between 1 and 65535."
+            exit 1
+          fi
+
+          # -------------------------------------------------------------------
+          # Deployment path validation
+          #
+          # Prevent shell metacharacters from entering remote commands.
+          # -------------------------------------------------------------------
+
+          if [[ ! "${DEPLOY_PATH}" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+            echo "::error::WEB_DEPLOY_PATH contains unsupported characters."
+            exit 1
+          fi
+
+          # -------------------------------------------------------------------
+          # Runtime URL validation
+          # -------------------------------------------------------------------
+
+          if [[ ! "${SSR_API_BASE_URL}" =~ ^https?://[^[:space:]]+$ ]]; then
+            echo "::error::WEB_SSR_API_BASE_URL must be a valid HTTP/HTTPS URL."
+            exit 1
+          fi
+
+          if [[ ! "${SITE_URL}" =~ ^https://[^[:space:]]+$ ]]; then
+            echo "::error::WEB_SITE_URL must be an HTTPS URL."
+            exit 1
+          fi
+
+          # -------------------------------------------------------------------
+          # robots.txt configuration validation
+          # -------------------------------------------------------------------
+
+          case "${ROBOTS_INDEXABLE}" in
+            true|false)
+              ;;
+            *)
+              echo "::error::WEB_ROBOTS_INDEXABLE must be true or false."
+              exit 1
+              ;;
+          esac
+
+          # -------------------------------------------------------------------
+          # Deployment files
+          # -------------------------------------------------------------------
+
+          test -s compose.production.yml
+          test -s scripts/deploy-web.sh
+
+          echo "Production deployment configuration validated."
+
+      # -----------------------------------------------------------------------
+      # Configure SSH
+      # -----------------------------------------------------------------------
 
       - name: Configure SSH
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+
         run: |
-          set -euo pipefail
-          test -n "${SSH_PRIVATE_KEY}"
-          test -n "${SSH_KNOWN_HOSTS}"
+          set -Eeuo pipefail
+
           install -m 700 -d "${HOME}/.ssh"
-          printf '%s\n' "${SSH_PRIVATE_KEY}" > "${HOME}/.ssh/id_ed25519"
-          printf '%s\n' "${SSH_KNOWN_HOSTS}" > "${HOME}/.ssh/known_hosts"
-          chmod 600 "${HOME}/.ssh/id_ed25519" "${HOME}/.ssh/known_hosts"
+
+          printf '%s\n' "${SSH_PRIVATE_KEY}" \
+            > "${HOME}/.ssh/id_ed25519"
+
+          printf '%s\n' "${SSH_KNOWN_HOSTS}" \
+            > "${HOME}/.ssh/known_hosts"
+
+          chmod 600 "${HOME}/.ssh/id_ed25519"
+          chmod 600 "${HOME}/.ssh/known_hosts"
+
+      # -----------------------------------------------------------------------
+      # Verify production server
+      # -----------------------------------------------------------------------
 
       - name: Verify deployment server
         shell: bash
@@ -133,19 +487,40 @@ jobs:
           SERVER_USER: ${{ secrets.SSH_USER }}
           SERVER_PORT: ${{ vars.SSH_PORT }}
           DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+
           SERVER_PORT="${SERVER_PORT:-22}"
           DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
-            -p "${SERVER_PORT}" "${SERVER_USER}@${SERVER_HOST}" \
-            "set -e
+
+          ssh \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${SERVER_PORT}" \
+            "${SERVER_USER}@${SERVER_HOST}" \
+            "set -Eeuo pipefail
+
              mkdir -p '${DEPLOY_PATH}'
+
+             test -d '${DEPLOY_PATH}'
              test -w '${DEPLOY_PATH}'
+
              command -v docker >/dev/null
              command -v curl >/dev/null
+
              docker version >/dev/null
-             docker compose version >/dev/null"
+             docker compose version >/dev/null
+
+             echo 'Production server verification successful.'"
+
+      # -----------------------------------------------------------------------
+      # Authenticate production server with GHCR
+      #
+      # The SERVER pulls the image directly from GHCR.
+      # GitHub does not copy the Docker image through SCP.
+      # -----------------------------------------------------------------------
 
       - name: Log deployment server in to GHCR
         shell: bash
@@ -153,17 +528,34 @@ jobs:
           SERVER_HOST: ${{ secrets.SSH_HOST }}
           SERVER_USER: ${{ secrets.SSH_USER }}
           SERVER_PORT: ${{ vars.SSH_PORT }}
+
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+
           SERVER_PORT="${SERVER_PORT:-22}"
-          test -n "${GHCR_USERNAME}"
-          test -n "${GHCR_TOKEN}"
-          printf '%s' "${GHCR_TOKEN}" | ssh -o BatchMode=yes \
-            -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
-            -p "${SERVER_PORT}" "${SERVER_USER}@${SERVER_HOST}" \
-            "docker login ghcr.io --username '${GHCR_USERNAME}' --password-stdin"
+
+          printf '%s' "${GHCR_TOKEN}" |
+            ssh \
+              -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes \
+              -o ConnectTimeout=15 \
+              -p "${SERVER_PORT}" \
+              "${SERVER_USER}@${SERVER_HOST}" \
+              "docker login ghcr.io \
+                --username '${GHCR_USERNAME}' \
+                --password-stdin"
+
+      # -----------------------------------------------------------------------
+      # Runtime environment
+      #
+      # These values are NOT built into the Docker image.
+      #
+      # The same image can therefore be configured differently depending on
+      # its deployment environment.
+      # -----------------------------------------------------------------------
 
       - name: Prepare runtime environment
         shell: bash
@@ -171,20 +563,70 @@ jobs:
           SSR_API_BASE_URL: ${{ vars.WEB_SSR_API_BASE_URL }}
           SITE_URL: ${{ vars.WEB_SITE_URL }}
           ROBOTS_INDEXABLE: ${{ vars.WEB_ROBOTS_INDEXABLE }}
+
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+
           test -n "${SSR_API_BASE_URL}"
           test -n "${SITE_URL}"
+
           ROBOTS_INDEXABLE="${ROBOTS_INDEXABLE:-true}"
+
+          if [[ ! "${SSR_API_BASE_URL}" =~ ^https?://[^[:space:]]+$ ]]; then
+            echo "::error::Invalid SSR_API_BASE_URL."
+            exit 1
+          fi
+
+          if [[ ! "${SITE_URL}" =~ ^https://[^[:space:]]+$ ]]; then
+            echo "::error::Invalid SITE_URL."
+            exit 1
+          fi
+
+          case "${ROBOTS_INDEXABLE}" in
+            true|false)
+              ;;
+            *)
+              echo "::error::ROBOTS_INDEXABLE must be true or false."
+              exit 1
+              ;;
+          esac
+
+          # All files created from here inherit restrictive permissions.
           umask 077
+
           {
             printf 'NODE_ENV=production\n'
             printf 'HOST=0.0.0.0\n'
             printf 'PORT=4200\n'
-            printf 'SSR_API_BASE_URL=%s\n' "${SSR_API_BASE_URL}"
-            printf 'SITE_URL=%s\n' "${SITE_URL}"
-            printf 'ROBOTS_INDEXABLE=%s\n' "${ROBOTS_INDEXABLE}"
+
+            printf 'SSR_API_BASE_URL=%s\n' \
+              "${SSR_API_BASE_URL}"
+
+            printf 'SITE_URL=%s\n' \
+              "${SITE_URL}"
+
+            printf 'ROBOTS_INDEXABLE=%s\n' \
+              "${ROBOTS_INDEXABLE}"
+
           } > runtime.env
+
+          chmod 600 runtime.env
+
+          test -s runtime.env
+
+      # -----------------------------------------------------------------------
+      # Upload deployment configuration
+      #
+      # Source code is NOT uploaded.
+      #
+      # The production server receives only:
+      #
+      #   compose.production.yml
+      #   runtime.env
+      #   deploy-web.sh
+      #
+      # Application code arrives through the immutable Docker image.
+      # -----------------------------------------------------------------------
 
       - name: Upload deployment files
         shell: bash
@@ -193,13 +635,36 @@ jobs:
           SERVER_USER: ${{ secrets.SSH_USER }}
           SERVER_PORT: ${{ vars.SSH_PORT }}
           DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+
           SERVER_PORT="${SERVER_PORT:-22}"
           DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
-          scp -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
-            -P "${SERVER_PORT}" compose.production.yml runtime.env scripts/deploy-web.sh \
+
+          scp \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -P "${SERVER_PORT}" \
+            compose.production.yml \
+            runtime.env \
+            scripts/deploy-web.sh \
             "${SERVER_USER}@${SERVER_HOST}:${DEPLOY_PATH}/"
+
+      # -----------------------------------------------------------------------
+      # Deploy
+      #
+      # deploy-web.sh:
+      #
+      #   1. validates image name
+      #   2. validates immutable SHA image tag
+      #   3. validates compose config
+      #   4. pulls exact image
+      #   5. starts/recreates container
+      #   6. waits for Docker HEALTHCHECK
+      #   7. independently checks /health from host
+      # -----------------------------------------------------------------------
 
       - name: Deploy and verify web container
         shell: bash
@@ -208,15 +673,61 @@ jobs:
           SERVER_USER: ${{ secrets.SSH_USER }}
           SERVER_PORT: ${{ vars.SSH_PORT }}
           DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+
           IMAGE_NAME: ${{ needs.build.outputs.image-name }}
           IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+
           SERVER_PORT="${SERVER_PORT:-22}"
           DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
-            -p "${SERVER_PORT}" "${SERVER_USER}@${SERVER_HOST}" \
-            "set -e
+
+          if [[ ! "${IMAGE_NAME}" =~ ^ghcr\.io/[a-z0-9._/-]+$ ]]; then
+            echo "::error::Invalid deployment image name."
+            exit 1
+          fi
+
+          if [[ ! "${IMAGE_TAG}" =~ ^sha-[a-f0-9]{40}$ ]]; then
+            echo "::error::Invalid deployment image tag."
+            exit 1
+          fi
+
+          ssh \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${SERVER_PORT}" \
+            "${SERVER_USER}@${SERVER_HOST}" \
+            "set -Eeuo pipefail
+
              cd '${DEPLOY_PATH}'
-             chmod +x deploy-web.sh
+
+             chmod 700 deploy-web.sh
+             chmod 600 runtime.env
+
              ./deploy-web.sh '${IMAGE_NAME}' '${IMAGE_TAG}'"
+
+      # -----------------------------------------------------------------------
+      # Deployment summary
+      # -----------------------------------------------------------------------
+
+      - name: Deployment summary
+        if: success()
+        shell: bash
+        env:
+          IMAGE_NAME: ${{ needs.build.outputs.image-name }}
+          IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+
+        run: |
+          {
+            echo "## Nezeza Ijuru production deployment"
+            echo
+            echo "Deployment completed successfully."
+            echo
+            echo "**Image:** \`${IMAGE_NAME}:${IMAGE_TAG}\`"
+            echo
+            echo "**Commit:** \`${GITHUB_SHA}\`"
+            echo
+            echo "**Branch:** \`${GITHUB_REF_NAME}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
