@@ -311,7 +311,7 @@ jobs:
 
     environment:
       name: production
-      url: ${{ vars.WEB_SITE_URL }}
+      url: ${{ vars.PROD_SITE_URL }}
 
     permissions:
       contents: read
@@ -339,20 +339,20 @@ jobs:
       - name: Validate deployment configuration
         shell: bash
         env:
-          SERVER_HOST: ${{ secrets.SSH_HOST }}
-          SERVER_USER: ${{ secrets.SSH_USER }}
-          SERVER_PORT: ${{ vars.SSH_PORT }}
-          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+          SERVER_HOST: ${{ secrets.PROD_HOST }}
+          SERVER_USER: ${{ secrets.PROD_USER }}
+          SERVER_PORT: ${{ vars.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.PROD_CLIENT_DEPLOY_PATH }}
 
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.PROD_GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.PROD_GHCR_TOKEN }}
 
-          SSR_API_BASE_URL: ${{ vars.WEB_SSR_API_BASE_URL }}
-          SITE_URL: ${{ vars.WEB_SITE_URL }}
-          ROBOTS_INDEXABLE: ${{ vars.WEB_ROBOTS_INDEXABLE }}
+          SSR_API_BASE_URL: ${{ vars.PROD_SSR_API_BASE_URL }}
+          SITE_URL: ${{ vars.PROD_SITE_URL }}
+          ROBOTS_INDEXABLE: ${{ vars.PROD_ROBOTS_INDEXABLE }}
 
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
 
         run: |
           set -Eeuo pipefail
@@ -389,12 +389,12 @@ jobs:
           # -------------------------------------------------------------------
 
           if [[ ! "${SERVER_PORT}" =~ ^[0-9]{1,5}$ ]]; then
-            echo "::error::SSH_PORT must be numeric."
+            echo "::error::PROD_SSH_PORT must be numeric."
             exit 1
           fi
 
           if (( SERVER_PORT < 1 || SERVER_PORT > 65535 )); then
-            echo "::error::SSH_PORT must be between 1 and 65535."
+            echo "::error::PROD_SSH_PORT must be between 1 and 65535."
             exit 1
           fi
 
@@ -405,7 +405,7 @@ jobs:
           # -------------------------------------------------------------------
 
           if [[ ! "${DEPLOY_PATH}" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
-            echo "::error::WEB_DEPLOY_PATH contains unsupported characters."
+            echo "::error::PROD_CLIENT_DEPLOY_PATH contains unsupported characters."
             exit 1
           fi
 
@@ -414,12 +414,12 @@ jobs:
           # -------------------------------------------------------------------
 
           if [[ ! "${SSR_API_BASE_URL}" =~ ^https?://[^[:space:]]+$ ]]; then
-            echo "::error::WEB_SSR_API_BASE_URL must be a valid HTTP/HTTPS URL."
+            echo "::error::PROD_SSR_API_BASE_URL must be a valid HTTP/HTTPS URL."
             exit 1
           fi
 
           if [[ ! "${SITE_URL}" =~ ^https://[^[:space:]]+$ ]]; then
-            echo "::error::WEB_SITE_URL must be an HTTPS URL."
+            echo "::error::PROD_SITE_URL must be an HTTPS URL."
             exit 1
           fi
 
@@ -431,7 +431,7 @@ jobs:
             true|false)
               ;;
             *)
-              echo "::error::WEB_ROBOTS_INDEXABLE must be true or false."
+              echo "::error::PROD_ROBOTS_INDEXABLE must be true or false."
               exit 1
               ;;
           esac
@@ -452,8 +452,8 @@ jobs:
       - name: Configure SSH
         shell: bash
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
 
         run: |
           set -Eeuo pipefail
@@ -476,10 +476,10 @@ jobs:
       - name: Verify deployment server
         shell: bash
         env:
-          SERVER_HOST: ${{ secrets.SSH_HOST }}
-          SERVER_USER: ${{ secrets.SSH_USER }}
-          SERVER_PORT: ${{ vars.SSH_PORT }}
-          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+          SERVER_HOST: ${{ secrets.PROD_HOST }}
+          SERVER_USER: ${{ secrets.PROD_USER }}
+          SERVER_PORT: ${{ vars.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.PROD_CLIENT_DEPLOY_PATH }}
 
         run: |
           set -Eeuo pipefail
@@ -518,12 +518,12 @@ jobs:
       - name: Log deployment server in to GHCR
         shell: bash
         env:
-          SERVER_HOST: ${{ secrets.SSH_HOST }}
-          SERVER_USER: ${{ secrets.SSH_USER }}
-          SERVER_PORT: ${{ vars.SSH_PORT }}
+          SERVER_HOST: ${{ secrets.PROD_HOST }}
+          SERVER_USER: ${{ secrets.PROD_USER }}
+          SERVER_PORT: ${{ vars.PROD_SSH_PORT }}
 
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.PROD_GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.PROD_GHCR_TOKEN }}
 
         run: |
           set -Eeuo pipefail
@@ -553,9 +553,9 @@ jobs:
       - name: Prepare runtime environment
         shell: bash
         env:
-          SSR_API_BASE_URL: ${{ vars.WEB_SSR_API_BASE_URL }}
-          SITE_URL: ${{ vars.WEB_SITE_URL }}
-          ROBOTS_INDEXABLE: ${{ vars.WEB_ROBOTS_INDEXABLE }}
+          SSR_API_BASE_URL: ${{ vars.PROD_SSR_API_BASE_URL }}
+          SITE_URL: ${{ vars.PROD_SITE_URL }}
+          ROBOTS_INDEXABLE: ${{ vars.PROD_ROBOTS_INDEXABLE }}
 
         run: |
           set -Eeuo pipefail
@@ -566,12 +566,12 @@ jobs:
           ROBOTS_INDEXABLE="${ROBOTS_INDEXABLE:-true}"
 
           if [[ ! "${SSR_API_BASE_URL}" =~ ^https?://[^[:space:]]+$ ]]; then
-            echo "::error::Invalid SSR_API_BASE_URL."
+            echo "::error::Invalid PROD_SSR_API_BASE_URL."
             exit 1
           fi
 
           if [[ ! "${SITE_URL}" =~ ^https://[^[:space:]]+$ ]]; then
-            echo "::error::Invalid SITE_URL."
+            echo "::error::Invalid PROD_SITE_URL."
             exit 1
           fi
 
@@ -579,7 +579,7 @@ jobs:
             true|false)
               ;;
             *)
-              echo "::error::ROBOTS_INDEXABLE must be true or false."
+            echo "::error::PROD_ROBOTS_INDEXABLE must be true or false."
               exit 1
               ;;
           esac
@@ -624,10 +624,10 @@ jobs:
       - name: Upload deployment files
         shell: bash
         env:
-          SERVER_HOST: ${{ secrets.SSH_HOST }}
-          SERVER_USER: ${{ secrets.SSH_USER }}
-          SERVER_PORT: ${{ vars.SSH_PORT }}
-          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+          SERVER_HOST: ${{ secrets.PROD_HOST }}
+          SERVER_USER: ${{ secrets.PROD_USER }}
+          SERVER_PORT: ${{ vars.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.PROD_CLIENT_DEPLOY_PATH }}
 
         run: |
           set -Eeuo pipefail
@@ -662,10 +662,10 @@ jobs:
       - name: Deploy and verify web container
         shell: bash
         env:
-          SERVER_HOST: ${{ secrets.SSH_HOST }}
-          SERVER_USER: ${{ secrets.SSH_USER }}
-          SERVER_PORT: ${{ vars.SSH_PORT }}
-          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+          SERVER_HOST: ${{ secrets.PROD_HOST }}
+          SERVER_USER: ${{ secrets.PROD_USER }}
+          SERVER_PORT: ${{ vars.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.PROD_CLIENT_DEPLOY_PATH }}
 
           IMAGE_NAME: ${{ needs.build.outputs.image-name }}
           IMAGE_TAG: ${{ needs.build.outputs.image-tag }}

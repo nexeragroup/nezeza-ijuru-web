@@ -80,12 +80,12 @@ IMAGE_NAME=nezeza-ijuru-web IMAGE_TAG=production \
 
 GitHub Actions uses these deployment rules:
 
-- Pull requests to `main` or `production` run checks and a non-published image build.
-- Pushes to `main` or `production` build and deploy the `production` image/configuration.
+- Pull requests to `main` run checks and a non-published image build.
+- Pushes to `main` build, publish, and deploy the `production` image/configuration.
 
-Create a GitHub Environment named `production`. It needs these secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `GHCR_USERNAME`, and `GHCR_TOKEN`.
+Create a GitHub Environment named `production`. It needs these secrets: `PROD_HOST`, `PROD_USER`, `PROD_SSH_PRIVATE_KEY`, `PROD_SSH_KNOWN_HOSTS`, `PROD_GHCR_USERNAME`, and `PROD_GHCR_TOKEN`.
 
-Set these environment variables: `WEB_SSR_API_BASE_URL` and `WEB_SITE_URL` are required. `WEB_ROBOTS_INDEXABLE` should be `true`. `WEB_DEPLOY_PATH` defaults to `/home/yves/nezeza-ijuru/client`; `SSH_PORT` defaults to `22`.
+Set these environment variables: `PROD_SSR_API_BASE_URL`, `PROD_SITE_URL`, and `PROD_ROBOTS_INDEXABLE=true`. `PROD_CLIENT_DEPLOY_PATH` should be `/home/yves/nezeza-ijuru/client`; `PROD_SSH_PORT` should be `22`.
 
 The deployment user must be able to write that directory, run Docker Compose, and pull the private GHCR image. The host must have port `10301` available.
 
