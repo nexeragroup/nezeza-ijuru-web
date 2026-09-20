@@ -100,9 +100,10 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Enable pnpm
-        shell: bash
-        run: corepack enable && corepack prepare pnpm@12.3.4 --activate
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.3.4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
