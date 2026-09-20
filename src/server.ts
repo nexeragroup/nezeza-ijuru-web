@@ -91,7 +91,15 @@ app.get('/sitemap.xml', async (_req, res) => {
       `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`,
     );
   } catch {
-    res.status(503).type('text/plain').send('Sitemap temporarily unavailable');
+    // Keep the sitemap crawlable when the API is temporarily unavailable.
+    res.type('application/xml').set('Cache-Control', 'public, max-age=300').sendFile(
+      join(browserDistFolder, 'sitemap.xml'),
+      (error) => {
+        if (error && !res.headersSent) {
+          res.status(503).type('text/plain').send('Sitemap temporarily unavailable');
+        }
+      },
+    );
   }
 });
 
