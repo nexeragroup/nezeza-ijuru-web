@@ -15,9 +15,9 @@ WORKDIR /app
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=4200
 COPY --from=build --chown=node:node /app/package.json ./
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
-COPY --from=build --chown=node:node /app/dist/client/prod/ssr ./dist/client/prod/ssr
+COPY --from=build --chown=node:node /app/dist/web/prod/ssr ./dist/web/prod/ssr
 USER node
 EXPOSE 4200
 STOPSIGNAL SIGTERM
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD node -e "fetch('http://127.0.0.1:4200/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
-CMD ["node", "dist/client/prod/ssr/server/server.mjs"]
+CMD ["node", "dist/web/prod/ssr/server/server.mjs"]
