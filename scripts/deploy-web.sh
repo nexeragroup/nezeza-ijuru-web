@@ -3,11 +3,10 @@ set -Eeuo pipefail
 
 IMAGE_NAME_VALUE="${1:?image required}"
 IMAGE_TAG_VALUE="${2:?immutable image tag required}"
-COMPOSE_FILE="${3:?compose file required}"
+COMPOSE_FILE="compose.production.yml"
 
 [[ "${IMAGE_NAME_VALUE}" =~ ^ghcr\.io/[a-z0-9._/-]+$ ]]
 [[ "${IMAGE_TAG_VALUE}" =~ ^sha-[a-f0-9]{40}$ ]]
-[[ "${COMPOSE_FILE}" == compose.staging.yml || "${COMPOSE_FILE}" == compose.production.yml ]]
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${DEPLOY_DIR}"

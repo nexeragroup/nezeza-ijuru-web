@@ -3,7 +3,7 @@ import { parseEnv } from 'node:util';
 
 export const API_CONTEXT = '^/api(?:/|\\?|$)';
 
-const PROXY_ENVIRONMENTS = new Set(['dev', 'staging', 'prod']);
+const PROXY_ENVIRONMENTS = new Set(['dev', 'prod']);
 
 function assertProxyEnvironment(name) {
   if (!PROXY_ENVIRONMENTS.has(name)) {
@@ -109,7 +109,7 @@ export function createProxy(name, settings) {
   }
 
   if (name !== 'dev' && target.protocol !== 'https:') {
-    throw new Error('Staging and prod CLI proxies require an HTTPS upstream.');
+    throw new Error('Prod CLI proxies require an HTTPS upstream.');
   }
 
   validateAllowedHost(target, settings);

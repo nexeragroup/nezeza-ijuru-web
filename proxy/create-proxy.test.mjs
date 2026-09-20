@@ -83,14 +83,6 @@ test('uses API_PROXY_TARGET when provided', () => {
   assert.equal(proxy.target, 'http://127.0.0.1:4000');
 });
 
-test('accepts HTTPS targets for staging', () => {
-  const proxy = getApiProxyRule('staging', {
-      API_PROXY_TARGET: 'https://api.staging.nezezaijuru.org',
-  });
-
-  assert.equal(proxy.target, 'https://api.staging.nezezaijuru.org');
-});
-
 test('accepts HTTPS targets for prod', () => {
   const proxy = getApiProxyRule('prod', {
       API_PROXY_TARGET: 'https://api.nezezaijuru.org',
@@ -105,16 +97,6 @@ test('rejects unsupported environments', () => {
   assert.throws(() => createProxy('development', {}), /Unsupported proxy environment/i);
 
   assert.throws(() => createProxy('production', {}), /Unsupported proxy environment/i);
-});
-
-test('staging rejects HTTP upstreams', () => {
-  assert.throws(
-    () =>
-      createProxy('staging', {
-        API_PROXY_TARGET: 'http://api.staging.nezezaijuru.org',
-      }),
-    /HTTPS upstream/i,
-  );
 });
 
 test('prod rejects HTTP upstreams', () => {

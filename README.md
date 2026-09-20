@@ -50,8 +50,6 @@ SSR_API_BASE_URL=https://api.nezezaijuru.org/api/v1 \
 
 `SSR_API_BASE_URL` must be the real NestJS origin. If the API is reverse-proxied under the same public domain, use `https://nezezaijuru.org/api/v1` instead. The browser uses the same-origin `/api/v1` path, so the edge proxy must route that path to NestJS and all other application paths to the SSR Node process.
 
-For staging, use the staging API and site origins and leave `ROBOTS_INDEXABLE=false`.
-
 Recommended edge routing:
 
 - `https://nezezaijuru.org/api/*` → NestJS API
@@ -67,32 +65,29 @@ The Docker image builds the SSR server for one Angular configuration and listens
 Build locally when needed:
 
 ```bash
-docker build --build-arg BUILD_CONFIGURATION=staging -t nezeza-ijuru-web:staging .
-docker build --build-arg BUILD_CONFIGURATION=prod -t nezeza-ijuru-web:production .
+docker build -t nezeza-ijuru-web:production .
 ```
 
 The compose files expect a server-side `runtime.env` file and an immutable image reference:
 
 ```bash
-cp .env.staging.example runtime.env
-IMAGE_NAME=nezeza-ijuru-web IMAGE_TAG=staging \
-  docker compose --env-file runtime.env -f compose.staging.yml up -d
+cp .env.production.example runtime.env
+IMAGE_NAME=nezeza-ijuru-web IMAGE_TAG=production \
+  docker compose --env-file runtime.env -f compose.production.yml up -d
 ```
 
 `runtime.env` is never committed. Set `SSR_API_BASE_URL` to the API origin reachable from the server-side renderer; the browser continues to use same-origin `/api/v1` requests.
 
 GitHub Actions uses these deployment rules:
 
-- Pull requests to `staging`, `main`, or `production` run checks and a non-published image build.
-- Pushes to `staging` build and deploy the `staging` image/configuration.
+- Pull requests to `main` or `production` run checks and a non-published image build.
 - Pushes to `main` or `production` build and deploy the `production` image/configuration.
-- A manual run can select either `staging` or `production`.
 
-Create GitHub Environments named `staging` and `production`. Each environment needs these secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `GHCR_USERNAME`, and `GHCR_TOKEN`.
+Create a GitHub Environment named `production`. It needs these secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `GHCR_USERNAME`, and `GHCR_TOKEN`.
 
-Set these environment variables: `WEB_SSR_API_BASE_URL` and `WEB_SITE_URL` are required. `WEB_ROBOTS_INDEXABLE` should be `false` for staging and `true` for production. `WEB_DEPLOY_PATH` defaults to `/home/yves/nezeza-ijuru/client`; `SSH_PORT` defaults to `22`.
+Set these environment variables: `WEB_SSR_API_BASE_URL` and `WEB_SITE_URL` are required. `WEB_ROBOTS_INDEXABLE` should be `true`. `WEB_DEPLOY_PATH` defaults to `/home/yves/nezeza-ijuru/client`; `SSH_PORT` defaults to `22`.
 
-The deployment user must be able to write that directory, run Docker Compose, and pull the private GHCR image. The host must have port `10301` available. After staging is verified, promote by merging or pushing the same changes to the production branch/environment.
+The deployment user must be able to write that directory, run Docker Compose, and pull the private GHCR image. The host must have port `10301` available.
 
 ## Building
 

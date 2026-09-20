@@ -1,5 +1,5 @@
 export interface AppEnvironment {
-  readonly name: 'dev' | 'staging' | 'prod';
+  readonly name: 'dev' | 'prod';
 
   readonly production: boolean;
 

@@ -3,24 +3,13 @@ name: Nezeza Ijuru Web CI/CD
 on:
   pull_request:
     branches:
-      - staging
       - main
       - production
   push:
     branches:
-      - staging
       - main
       - production
   workflow_dispatch:
-    inputs:
-      target:
-        description: Deployment target
-        required: true
-        type: choice
-        default: staging
-        options:
-          - staging
-          - production
 
 concurrency:
   group: nezeza-ijuru-web-${{ github.ref }}
@@ -34,62 +23,8 @@ permissions:
   contents: read
 
 jobs:
-  target:
-    name: Resolve deployment target
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.target.outputs.environment }}
-      configuration: ${{ steps.target.outputs.configuration }}
-      compose-file: ${{ steps.target.outputs.compose-file }}
-      deploy: ${{ steps.target.outputs.deploy }}
-    steps:
-      - name: Resolve branch or manual target
-        id: target
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
-          BASE_REF: ${{ github.base_ref }}
-          REQUESTED_TARGET: ${{ inputs.target }}
-        run: |
-          set -euo pipefail
-
-          target="${REQUESTED_TARGET}"
-          if [[ -z "${target}" ]]; then
-            target="${BASE_REF:-${REF_NAME}}"
-            if [[ "${target}" == "main" || "${target}" == "production" ]]; then
-              target="production"
-            else
-              target="staging"
-            fi
-          fi
-
-          case "${target}" in
-            staging)
-              configuration="staging"
-              compose_file="compose.staging.yml"
-              ;;
-            production)
-              configuration="prod"
-              compose_file="compose.production.yml"
-              ;;
-            *)
-              echo "Unsupported deployment target: ${target}" >&2
-              exit 1
-              ;;
-          esac
-
-          deploy=false
-          [[ "${EVENT_NAME}" != "pull_request" ]] && deploy=true
-
-          echo "environment=${target}" >> "${GITHUB_OUTPUT}"
-          echo "configuration=${configuration}" >> "${GITHUB_OUTPUT}"
-          echo "compose-file=${compose_file}" >> "${GITHUB_OUTPUT}"
-          echo "deploy=${deploy}" >> "${GITHUB_OUTPUT}"
-
   quality:
     name: Typecheck and proxy tests
-    needs: target
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -117,10 +52,8 @@ jobs:
         run: pnpm test:proxy
 
   build:
-    name: Build and publish ${{ needs.target.outputs.environment }} image
-    needs:
-      - target
-      - quality
+    name: Build and publish production image
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -154,28 +87,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and publish web image
+      - name: Build and publish production image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          build-args: |
-            BUILD_CONFIGURATION=${{ needs.target.outputs.configuration }}
           tags: |
             ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
-          cache-from: type=gha,scope=nezeza-ijuru-web-${{ needs.target.outputs.environment }}
-          cache-to: type=gha,mode=max,scope=nezeza-ijuru-web-${{ needs.target.outputs.environment }}
+          cache-from: type=gha,scope=nezeza-ijuru-web-production
+          cache-to: type=gha,mode=max,scope=nezeza-ijuru-web-production
 
   deploy:
-    name: Deploy ${{ needs.target.outputs.environment }} web
-    needs:
-      - target
-      - build
-    if: needs.target.outputs.deploy == 'true'
+    name: Deploy production web
+    needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
-      name: ${{ needs.target.outputs.environment }}
+      name: production
       url: ${{ vars.WEB_SITE_URL }}
     permissions:
       contents: read
@@ -246,7 +175,7 @@ jobs:
           set -euo pipefail
           test -n "${SSR_API_BASE_URL}"
           test -n "${SITE_URL}"
-          ROBOTS_INDEXABLE="${ROBOTS_INDEXABLE:-false}"
+          ROBOTS_INDEXABLE="${ROBOTS_INDEXABLE:-true}"
           umask 077
           {
             printf 'NODE_ENV=production\n'
@@ -264,14 +193,12 @@ jobs:
           SERVER_USER: ${{ secrets.SSH_USER }}
           SERVER_PORT: ${{ vars.SSH_PORT }}
           DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
-          COMPOSE_FILE: ${{ needs.target.outputs.compose-file }}
         run: |
           set -euo pipefail
           SERVER_PORT="${SERVER_PORT:-22}"
           DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
-          test -f "${COMPOSE_FILE}"
           scp -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
-            -P "${SERVER_PORT}" "${COMPOSE_FILE}" runtime.env scripts/deploy-web.sh \
+            -P "${SERVER_PORT}" compose.production.yml runtime.env scripts/deploy-web.sh \
             "${SERVER_USER}@${SERVER_HOST}:${DEPLOY_PATH}/"
 
       - name: Deploy and verify web container
@@ -283,7 +210,6 @@ jobs:
           DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
           IMAGE_NAME: ${{ needs.build.outputs.image-name }}
           IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
-          COMPOSE_FILE: ${{ needs.target.outputs.compose-file }}
         run: |
           set -euo pipefail
           SERVER_PORT="${SERVER_PORT:-22}"
@@ -293,4 +219,4 @@ jobs:
             "set -e
              cd '${DEPLOY_PATH}'
              chmod +x deploy-web.sh
-             ./deploy-web.sh '${IMAGE_NAME}' '${IMAGE_TAG}' '${COMPOSE_FILE}'"
+             ./deploy-web.sh '${IMAGE_NAME}' '${IMAGE_TAG}'"

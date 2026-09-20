@@ -69,42 +69,6 @@
                 "allowedHosts": ["localhost", "127.0.0.1"]
               }
             },
-            "staging": {
-              "outputPath": {
-                "base": "dist/web/staging/ssr",
-                "browser": "browser",
-                "server": "server"
-              },
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.staging.ts"
-                },
-                {
-                  "replace": "src/app/rendering.providers.ts",
-                  "with": "src/app/rendering.providers.ssr.ts"
-                }
-              ],
-              "optimization": true,
-              "extractLicenses": true,
-              "sourceMap": false,
-              "outputHashing": "all",
-              "security": {
-                "allowedHosts": ["staging.nezezaijuru.org"]
-              },
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
-                }
-              ]
-            },
             "prod": {
               "outputPath": {
                 "base": "dist/web/prod/ssr",
@@ -151,10 +115,6 @@
               "buildTarget": "web:build:dev",
               "proxyConfig": "proxy/proxy.dev.mjs"
             },
-            "staging": {
-              "buildTarget": "web:build:staging",
-              "proxyConfig": "proxy/proxy.staging.mjs"
-            },
             "prod": {
               "buildTarget": "web:build:prod",
               "proxyConfig": "proxy/proxy.prod.mjs"
@@ -167,7 +127,6 @@
           "configurations": {
             "development": { "buildTarget": "web:build:dev" },
             "dev": { "buildTarget": "web:build:dev" },
-            "staging": { "buildTarget": "web:build:staging" },
             "prod": { "buildTarget": "web:build:prod" }
           },
           "defaultConfiguration": "dev"
