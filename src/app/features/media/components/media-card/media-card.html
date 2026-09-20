@@ -1,0 +1,75 @@
+@if (media; as item) {
+  <article class="media-card">
+    <div class="media-preview">
+      <span class="media-type"
+        ><i class="fa-solid {{ typeIcon }}" aria-hidden="true"></i>{{ typeLabel }}</span
+      >
+      @switch (item.mediaType) {
+        @case ('IMAGE') {
+          <img [src]="item.url" [alt]="item.altText || item.title" loading="lazy" />
+        }
+        @case ('VIDEO') {
+          @if (embed && videoLoaded()) {
+            <iframe
+              [src]="embed"
+              [title]="item.title"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          } @else if (embed) {
+            <button type="button" class="media-placeholder media-video-placeholder" (click)="loadVideo()">
+              <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
+              <span>Load video preview</span>
+            </button>
+          } @else if (directVideo) {
+            <video [src]="item.url" controls preload="none" [attr.aria-label]="item.title"></video>
+          } @else {
+            <div class="media-placeholder">
+              <i class="fa-solid fa-circle-play" aria-hidden="true"></i
+              ><span>Video preview unavailable</span>
+            </div>
+          }
+        }
+        @case ('AUDIO') {
+          <div class="media-placeholder">
+            <i class="fa-solid fa-headphones" aria-hidden="true"></i
+            ><span>Listen to this recording</span>
+          </div>
+          <audio [src]="item.url" controls preload="none" [attr.aria-label]="item.title"></audio>
+        }
+        @case ('PODCAST') {
+          <div class="media-placeholder">
+            <i class="fa-solid fa-podcast" aria-hidden="true"></i
+            ><span>Listen to this podcast</span>
+          </div>
+          <audio [src]="item.url" controls preload="none" [attr.aria-label]="item.title"></audio>
+        }
+        @default {
+          <div class="media-placeholder">
+            <i class="fa-solid {{ typeIcon }}" aria-hidden="true"></i
+            ><span>Open this resource</span>
+          </div>
+        }
+      }
+    </div>
+    <div class="details">
+      <p class="source-label">
+        {{ item.sourceType === 'UPLOAD' ? 'Nezeza Ijuru library' : 'External resource' }}
+      </p>
+      <h3>{{ item.title }}</h3>
+      @if (item.caption) {
+        <p class="caption">{{ item.caption }}</p>
+      }
+      <a
+        class="card-link"
+        [href]="item.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        [attr.aria-label]="'Open ' + item.title + ' in a new tab'"
+        >Open resource <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i
+      ></a>
+    </div>
+  </article>
+}

@@ -1,0 +1,15 @@
+<section class="livestream-page" [class.embedded]="embedded">
+  @if (!embedded) { <header><p class="eyebrow">NEZEZA IJURU · WATCH TOGETHER</p><h1>Livestream</h1><p>Join our sessions live, see what’s coming up, or watch a past broadcast.</p></header> }
+  @if (loading) { <p class="state" role="status">Loading broadcasts…</p> }
+  @if (error) { <div class="notice" role="alert">We couldn’t check the latest broadcast status. <button type="button" (click)="refresh()">Try again</button></div> }
+  @if (selected; as stream) {
+    <div class="watch-layout">
+      <article class="broadcast">
+        <div class="broadcast-heading"><span class="status" [class.live]="stream.state === 'LIVE'" aria-live="polite">{{ labels[stream.state] }}</span><h2>{{ stream.title }}</h2></div>
+        @if (embed) { <iframe [src]="embed" [title]="stream.title" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> } @else { <div class="player-fallback">This video cannot be played here. Open it on YouTube to check availability.</div> }
+        <div class="broadcast-info">@if (stream.state === 'UPCOMING' && stream.scheduledStartAt) { <p>Scheduled for {{ stream.scheduledStartAt | date:'medium' }}</p> } @if (stream.state === 'ENDED') { <p>This broadcast has ended. A replay will play here when it is available.</p> } @if (stream.state === 'UNKNOWN') { <p>We can’t confirm whether this broadcast is live right now.</p> }<a [href]="stream.url" target="_blank" rel="noopener noreferrer">Open on YouTube ↗</a></div>
+      </article>
+      <aside aria-label="Available broadcasts"><h2>Broadcasts</h2>@for (item of streams; track item.sessionId) { <button type="button" class="stream-option" [class.selected]="item.sessionId === stream.sessionId" [attr.aria-pressed]="item.sessionId === stream.sessionId" (click)="select(item)"><span class="status" [class.live]="item.state === 'LIVE'">{{ labels[item.state] }}</span><strong>{{ item.title }}</strong><small>{{ item.startAt | date:'mediumDate' }}</small></button> }</aside>
+    </div>
+  } @else if (!loading && !error) { <div class="empty"><h2>No broadcasts yet</h2><p>Our next broadcast will appear here once it is announced.</p><a routerLink="/conferences">Explore conferences →</a></div> }
+</section>

@@ -1,0 +1,15 @@
+{
+  "name": "Nezeza Ijuru",
+  "short_name": "Nezeza Ijuru",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2f4858",
+  "icons": [
+    {
+      "src": "/icons/favicon.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}

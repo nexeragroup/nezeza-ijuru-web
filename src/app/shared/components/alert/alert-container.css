@@ -1,0 +1,214 @@
+:host {
+  display:
+    contents;
+}
+
+
+/* ==========================================================================
+   Toast stacks
+   ========================================================================== */
+
+.alert-stack {
+  position:
+    fixed;
+
+  z-index:
+    var(--z-toast, 800);
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    var(--space-3, 0.75rem);
+
+  inline-size:
+    min(calc(100vw - 2rem),
+      24rem);
+
+  max-block-size:
+    calc(100dvh - 2rem);
+
+  overflow-y:
+    auto;
+
+  pointer-events:
+    none;
+}
+
+
+.alert-stack__item {
+  pointer-events:
+    auto;
+}
+
+
+/* ==========================================================================
+   Top left
+   ========================================================================== */
+
+.alert-stack--top-left {
+  inset-block-start:
+    var(--space-4, 1rem);
+
+  left:
+    var(--space-4, 1rem);
+}
+
+
+/* ==========================================================================
+   Top right
+   ========================================================================== */
+
+.alert-stack--top-right {
+  inset-block-start:
+    var(--space-4, 1rem);
+
+  right:
+    var(--space-4, 1rem);
+}
+
+
+/* ==========================================================================
+   Top center
+   ========================================================================== */
+
+.alert-stack--center {
+  inset-block-start:
+    var(--space-4, 1rem);
+
+  left:
+    50%;
+
+  transform:
+    translateX(-50%);
+}
+
+
+/* ==========================================================================
+   Dialog
+   ========================================================================== */
+
+.alert-dialog {
+  width:
+    min(calc(100vw - 2rem),
+      30rem);
+
+  max-block-size:
+    calc(100dvh - 2rem);
+
+  padding: 0;
+
+  margin: auto;
+
+  overflow:
+    visible;
+
+  border: 0;
+
+  border-radius:
+    var(--radius-lg, 0.75rem);
+
+  background:
+    transparent;
+
+  color:
+    #101828;
+
+  color-scheme:
+    light;
+}
+
+
+/* ==========================================================================
+   Backdrop
+   ========================================================================== */
+
+.alert-dialog::backdrop {
+  background:
+    rgb(16 24 40 / 45%);
+
+  opacity: 1;
+
+  backdrop-filter:
+    blur(2px);
+
+  animation:
+    alert-backdrop-enter 220ms ease-out both;
+}
+
+
+.alert-dialog--closing::backdrop {
+  animation:
+    alert-backdrop-exit 180ms ease-in both;
+}
+
+
+/* ==========================================================================
+   Backdrop animation
+   ========================================================================== */
+
+@keyframes alert-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+@keyframes alert-backdrop-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@media (max-width: 36rem) {
+  .alert-stack {
+    inline-size:
+      calc(100vw - 1.5rem);
+  }
+
+
+  .alert-stack--top-left {
+    left:
+      0.75rem;
+  }
+
+
+  .alert-stack--top-right {
+    right:
+      0.75rem;
+  }
+
+
+  .alert-dialog {
+    width:
+      calc(100vw - 1.5rem);
+  }
+}
+
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-dialog::backdrop {
+    animation-duration:
+      0.01ms !important;
+  }
+}

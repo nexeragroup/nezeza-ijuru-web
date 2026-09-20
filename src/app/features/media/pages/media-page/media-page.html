@@ -1,0 +1,105 @@
+<main class="media-page container">
+  <header class="media-hero">
+    <div class="media-hero-copy">
+      <p class="eyebrow">Watch. Listen. Remember.</p>
+      <h1>Stories that stay with you.</h1>
+      <p>
+        Explore images, videos, podcasts and resources from Nezeza Ijuru gatherings, programs and
+        conferences.
+      </p>
+      <div class="hero-actions">
+        <a class="hero-link" routerLink="/media/livestream"
+          >Watch livestreams
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i
+        ></a>
+        <span>New recordings and moments are added as they are published.</span>
+      </div>
+    </div>
+    <div class="media-hero-art" aria-hidden="true">
+      <span class="hero-art-card hero-art-card-back"><i class="fa-solid fa-image"></i></span>
+      <span class="hero-art-card hero-art-card-middle"><i class="fa-solid fa-headphones"></i></span>
+      <span class="hero-art-card hero-art-card-front"><i class="fa-solid fa-play"></i></span>
+    </div>
+  </header>
+
+  <section [attr.aria-busy]="loading()" aria-label="Media library">
+    @if (loading()) {
+      <div class="loading-grid" role="status" aria-label="Loading media">
+        @for (card of skeletonCards; track card) {
+          <div class="skeleton-card" aria-hidden="true">
+            <span></span>
+            <div><i></i><i></i><i></i></div>
+          </div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="media-state media-state-error" role="alert">
+        <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i>
+        <h2>We couldn't load the media.</h2>
+        <p>Something interrupted the library request. Try again in a moment.</p>
+        <button type="button" (click)="load()">Try again</button>
+      </div>
+    } @else if (result(); as page) {
+      @if (page.data.length) {
+        <div class="library-heading">
+          <div>
+            <p class="eyebrow">The collection</p>
+            <h2>Find something to watch or hear</h2>
+          </div>
+          <p class="library-count" role="status">
+            {{ page.total }} {{ page.total === 1 ? 'media item' : 'media items' }}
+          </p>
+        </div>
+        <div class="media-filters" aria-label="Filter media by type">
+          @for (filter of filterOptions; track filter.id) {
+            <button
+              type="button"
+              [attr.aria-pressed]="activeFilter() === filter.id"
+              [class.active]="activeFilter() === filter.id"
+              (click)="setFilter(filter.id)"
+            >
+              {{ filter.label }}
+            </button>
+          }
+        </div>
+        @if (filteredItems().length) {
+          <div class="media-grid" aria-live="polite">
+            @for (item of filteredItems(); track item.id) {
+              <app-media-card [item]="item" />
+            }
+          </div>
+        } @else {
+          <div class="media-state media-state-filtered">
+            <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+            <h2>Nothing in this filter yet</h2>
+            <p>Try another media type or return to the full collection.</p>
+            <button type="button" (click)="setFilter('ALL')">Show all media</button>
+          </div>
+        }
+        @if (page.totalPages > 1) {
+          <nav class="pagination" aria-label="Media pagination">
+            <button type="button" [disabled]="page.page <= 1" (click)="load(page.page - 1)">
+              Previous</button
+            ><span>Page {{ page.page }} of {{ page.totalPages }}</span
+            ><button
+              type="button"
+              [disabled]="page.page >= page.totalPages"
+              (click)="load(page.page + 1)"
+            >
+              Next
+            </button>
+          </nav>
+        }
+      } @else {
+        <div class="media-state">
+          <i class="fa-solid fa-photo-film" aria-hidden="true"></i>
+          <h2>Media is being uploaded</h2>
+          <p>We are preparing photos, videos, and other resources. Please check back soon.</p>
+          <a class="state-link" routerLink="/conferences"
+            >Explore conferences <i class="fa-solid fa-arrow-right" aria-hidden="true"></i
+          ></a>
+        </div>
+      }
+    }
+  </section>
+</main>

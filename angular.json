@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "pnpm"
+    "packageManager": "pnpm",
+    "analytics": "bbaa9efd-091d-4bee-892b-228356848e33"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -34,9 +35,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
@@ -47,7 +46,52 @@
             }
           },
           "configurations": {
-            "production": {
+            "dev": {
+              "outputPath": {
+                "base": "dist/web/dev/ssr",
+                "browser": "browser",
+                "server": "server"
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                },
+                {
+                  "replace": "src/app/rendering.providers.ts",
+                  "with": "src/app/rendering.providers.ssr.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "security": {
+                "allowedHosts": ["localhost", "127.0.0.1"]
+              }
+            },
+            "staging": {
+              "outputPath": {
+                "base": "dist/web/staging/ssr",
+                "browser": "browser",
+                "server": "server"
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                },
+                {
+                  "replace": "src/app/rendering.providers.ts",
+                  "with": "src/app/rendering.providers.ssr.ts"
+                }
+              ],
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "outputHashing": "all",
+              "security": {
+                "allowedHosts": ["staging.nezezaijuru.org"]
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -59,31 +103,74 @@
                   "maximumWarning": "4kB",
                   "maximumError": "8kB"
                 }
-              ],
-              "outputHashing": "all"
+              ]
             },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
+            "prod": {
+              "outputPath": {
+                "base": "dist/web/prod/ssr",
+                "browser": "browser",
+                "server": "server"
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/app/rendering.providers.ts",
+                  "with": "src/app/rendering.providers.ssr.ts"
+                }
+              ],
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "outputHashing": "all",
+              "security": {
+                "allowedHosts": ["nezezaijuru.org", "www.nezezaijuru.org"]
+              },
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ]
+            },
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "prod"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "production": {
-              "buildTarget": "web:build:production"
+            "dev": {
+              "buildTarget": "web:build:dev",
+              "proxyConfig": "proxy/proxy.dev.mjs"
             },
-            "development": {
-              "buildTarget": "web:build:development"
-            }
+            "staging": {
+              "buildTarget": "web:build:staging",
+              "proxyConfig": "proxy/proxy.staging.mjs"
+            },
+            "prod": {
+              "buildTarget": "web:build:prod",
+              "proxyConfig": "proxy/proxy.prod.mjs"
+            },
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "configurations": {
+            "development": { "buildTarget": "web:build:dev" },
+            "dev": { "buildTarget": "web:build:dev" },
+            "staging": { "buildTarget": "web:build:staging" },
+            "prod": { "buildTarget": "web:build:prod" }
+          },
+          "defaultConfiguration": "dev"
         }
       }
     }

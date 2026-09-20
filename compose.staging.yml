@@ -1,0 +1,25 @@
+name: nezeza-ijuru-web-staging
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '5'
+
+services:
+  web:
+    image: '${IMAGE_NAME:?required}:${IMAGE_TAG:?required}'
+    restart: unless-stopped
+    init: true
+    env_file:
+      - runtime.env
+    ports:
+      - '127.0.0.1:10301:4200'
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging

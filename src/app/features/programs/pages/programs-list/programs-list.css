@@ -1,0 +1,250 @@
+:host {
+  display: block;
+  color: var(--brand-navy);
+}
+
+.container {
+  width: min(76rem, calc(100% - 3rem));
+  margin-inline: auto;
+}
+
+.page-hero {
+  padding-block: clamp(5rem, 10vw, 9rem);
+  background: var(--brand-navy);
+  color: var(--brand-cream);
+}
+
+.page-hero h1,
+.program-cta h2 {
+  margin-top: 1rem;
+  color: inherit;
+  font-size: clamp(3.25rem, 8vw, 7rem);
+  letter-spacing: -0.07em;
+  line-height: 0.88;
+}
+
+.page-hero>div>p:last-child {
+  max-width: 42rem;
+  margin-top: 1.5rem;
+  color: rgb(249 242 214 / 78%);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.eyebrow {
+  color: var(--brand-green);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.page-hero .eyebrow,
+.program-cta .eyebrow {
+  color: var(--brand-gold);
+}
+
+.program-list {
+  padding-block: clamp(2rem, 4vw, 5rem);
+}
+
+.program-state {
+  display: grid;
+  place-items: center;
+  gap: 0.75rem;
+  min-height: 22rem;
+  padding: clamp(1rem, 4vw, 2rem);
+  /* border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface); */
+  text-align: center;
+}
+
+.program-state>i,
+.state-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-full);
+  background: var(--brand-green);
+  color: var(--brand-cream);
+  font-size: 1.35rem;
+}
+
+.program-state--loading>i {
+  width: auto;
+  height: auto;
+  background: transparent;
+  color: var(--brand-green);
+  font-size: 1.75rem;
+}
+
+.program-state .eyebrow {
+  margin-top: 0.35rem;
+  color: var(--brand-green);
+}
+
+.program-state h2 {
+  max-width: 28rem;
+  color: inherit;
+  font-size: clamp(1.65rem, 3vw, 2.4rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.program-state>p:not(.eyebrow) {
+  max-width: 34rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.state-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.1rem;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--brand-navy);
+  color: var(--brand-cream);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.state-actions button:hover,
+.state-actions button:focus-visible {
+  background: var(--brand-green);
+}
+
+.state-actions a,
+.program-state--empty>a {
+  color: var(--brand-green);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.state-actions a:hover,
+.state-actions a:focus-visible,
+.program-state--empty>a:hover,
+.program-state--empty>a:focus-visible {
+  color: var(--brand-navy);
+}
+
+.program {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 6rem);
+  padding-block: 2rem;
+  color: inherit;
+}
+
+.program+.program {
+  border-top: 1px solid rgb(47 72 88 / 16%);
+}
+
+.program:nth-child(even) .image {
+  order: 2;
+}
+
+.image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: var(--brand-navy);
+}
+
+.image img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transition: transform 250ms ease;
+}
+
+.program:hover .image img {
+  transform: scale(1.04);
+}
+
+.image span {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: var(--brand-cream);
+  color: var(--brand-navy);
+  font-weight: 800;
+}
+
+.copy h2 {
+  margin-top: 0.6rem;
+  color: inherit;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.copy>p:not(.eyebrow) {
+  max-width: 35rem;
+  margin-top: 1rem;
+  line-height: 1.75;
+  opacity: 0.78;
+}
+
+.copy strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  color: var(--brand-green);
+}
+
+.program-cta {
+  padding-block: clamp(4rem, 8vw, 7rem);
+  background: var(--brand-green);
+  color: var(--brand-cream);
+}
+
+.program-cta h2 {
+  max-width: 13ch;
+  font-size: clamp(2.5rem, 5vw, 5rem);
+}
+
+.program-cta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  color: var(--brand-cream);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+@media (max-width: 700px) {
+  .container {
+    width: min(100% - 2rem, 76rem);
+  }
+
+  .program {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .program:nth-child(even) .image {
+    order: 0;
+  }
+}

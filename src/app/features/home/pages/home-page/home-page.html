@@ -1,0 +1,398 @@
+<main>
+  <section class="org-hero hero-slideshow" aria-roledescription="carousel" aria-label="Nezeza Ijuru programs">
+    @for (slide of heroSlides; track slide.eyebrow; let index = $index) {
+    <article class="hero-slide" [class.hero-slide-active]="activeSlideIndex() === index"
+      [style.background-image]="activeSlideIndex() === index ? 'linear-gradient(90deg, rgb(47 72 88 / 78%) 0%, rgb(47 72 88 / 54%) 50%, rgb(47 72 88 / 78%) 100%), url(' + slide.image + ')' : null"
+      [attr.aria-hidden]="activeSlideIndex() !== index" [attr.inert]="activeSlideIndex() !== index ? '' : null">
+      <div class="container hero-slide-inner">
+        <div class="org-hero-content" aria-live="polite">
+          <p class="eyebrow eyebrow-dark"><span aria-hidden="true"></span>{{ slide.eyebrow }}</p>
+          <h1 [attr.id]="index === 0 ? 'hero-title' : null">{{ slide.title }}</h1>
+          <p class="hero-copy">{{ slide.text }}</p>
+          <div class="action-row">
+            <a class="action-link action-link-gold" [routerLink]="slide.primaryAction.href">{{ slide.primaryAction.label
+              }} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            <a class="text-link text-link-light" [routerLink]="slide.secondaryAction.href">{{
+              slide.secondaryAction.label }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+        </div>
+      </div>
+    </article>
+    }
+    <div class="container hero-carousel-controls">
+      <div class="hero-carousel-arrows">
+        <button type="button" (click)="previousSlide()" aria-label="Previous program"><i class="fa-solid fa-arrow-left"
+            aria-hidden="true"></i></button>
+        <button type="button" (click)="nextSlide()" aria-label="Next program"><i class="fa-solid fa-arrow-right"
+            aria-hidden="true"></i></button>
+      </div>
+      <button
+        type="button"
+        class="hero-carousel-pause"
+        [attr.aria-label]="carouselPaused() ? 'Play program carousel' : 'Pause program carousel'"
+        (click)="toggleCarousel()"
+      >
+        <i class="fa-solid" [class.fa-play]="carouselPaused()" [class.fa-pause]="!carouselPaused()" aria-hidden="true"></i>
+      </button>
+      <div class="hero-carousel-dots" aria-label="Choose a program slide">
+        @for (slide of heroSlides; track slide.eyebrow; let index = $index) {
+        <button type="button" [class.active]="activeSlideIndex() === index" (click)="selectSlide(index)"
+          [attr.aria-label]="'Show slide ' + (index + 1) + ': ' + slide.eyebrow"
+          [attr.aria-current]="activeSlideIndex() === index ? 'true' : null"></button>
+        }
+      </div>
+      <span class="hero-carousel-count">0{{ activeSlideIndex() + 1 }} / 0{{ heroSlides.length }}</span>
+    </div>
+  </section>
+
+  <!-- <app-updates></app-updates> -->
+
+  <section id="about" class="organization-section about-section" aria-labelledby="about-title">
+    <div class="container about-grid">
+      <div class="section-intro">
+        <p class="eyebrow eyebrow-clay">Our purpose</p>
+
+        <h2 id="about-title">
+          Make heaven rejoice by leading people to Christ.
+        </h2>
+
+        <p>
+          Nezeza Ijuru means “Make Heaven Rejoice.” Launched in 2017 by
+          Zion Temple Kimironko and inspired by Luke 15:10, it is an annual
+          evangelism and discipleship mission calling people to be reconciled
+          to God through Jesus Christ, grow into mature disciples, and live
+          lives through which Christ is revealed.
+        </p>
+
+        <a class="text-link" routerLink="/about">
+          Discover Nezeza Ijuru
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="purpose-cards">
+        <article class="purpose-card purpose-card-mission">
+          <img src="/images/programs/evangelism.jpg" alt="Nezeza Ijuru evangelism and Gospel outreach" />
+
+          <div class="purpose-card-copy">
+            <p class="card-kicker">Our mission</p>
+
+            <h3>
+              Find the lost, lead them to Christ, and make disciples.
+            </h3>
+          </div>
+        </article>
+
+        <article class="purpose-card purpose-card-vision">
+          <img src="/images/programs/ylc.jpg" alt="People being served through Nezeza Ijuru community outreach" />
+
+          <div class="purpose-card-copy">
+            <p class="card-kicker">Our desire</p>
+
+            <h3>
+              See lives transformed by God’s Word and Christ revealed through
+              how people live.
+            </h3>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  @if (currentConference(); as conference) {
+  <section class="organization-section conference-spotlight" aria-labelledby="conference-title">
+    <div class="conference-spotlight-pattern" aria-hidden="true"></div>
+    <div class="container conference-spotlight-grid">
+      <div class="conference-spotlight-content">
+        <p class="eyebrow eyebrow-gold">Current conference</p>
+        <h2 id="conference-title">{{ conference.title }}</h2>
+        @if (conference.summary) { <p>{{ conference.summary }}</p> }
+        <div class="action-row">
+          <a class="action-link action-link-cream" [routerLink]="['/conferences', conference.slug]">Explore the conference
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </div>
+      </div>
+      <aside class="conference-detail-card" [attr.aria-label]="conference.year + ' conference details'">
+        <div class="placeholder-label">{{ conference.startDate ? 'Current conference' : 'In preparation' }}</div>
+        <p class="conference-year">{{ conference.year }}</p>
+        <dl>
+          <div>
+            <dt>Conference</dt>
+            <dd>{{ conference.title }}</dd>
+          </div>
+          <div>
+            <dt>Theme</dt>
+            <dd>{{ conference.theme || 'Theme to be announced' }}</dd>
+          </div>
+          <div>
+            <dt>When</dt>
+            <dd>
+              @if (conference.startDate) {
+              {{ conference.startDate | date:'longDate':'UTC' }}
+              @if (conference.endDate && conference.endDate !== conference.startDate) { – {{ conference.endDate |
+              date:'longDate':'UTC' }} }
+              } @else { Dates to be announced }
+            </dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+  }
+
+  <section class="organization-section programs-section" aria-labelledby="programs-title">
+    <div class="container">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow eyebrow-green">Our programs</p>
+
+          <h2 id="programs-title">
+            Sharing Christ. Strengthening people. Transforming communities.
+          </h2>
+
+          <p class="section-description">
+            Nezeza Ijuru carries its mission through the programs published by
+            the ministry team: evangelism, care, formation, worship, and service.
+          </p>
+        </div>
+
+        <a class="text-link" routerLink="/programs">
+          Explore all programs
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="program-grid">
+        @for (program of programs(); track program.id; let index = $index) {
+        <a class="program-card" [routerLink]="['/programs', program.slug]">
+          <img [src]="programImage(program)" [alt]="program.name" loading="lazy" decoding="async" />
+
+          <span class="program-number" aria-hidden="true">
+            0{{ index + 1 }}
+          </span>
+
+          <div class="program-card-copy">
+            <h3>{{ program.name }}</h3>
+            <p>{{ program.summary || program.description }}</p>
+          </div>
+
+          <i class="program-arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- <section class="organization-section journey-section" aria-labelledby="journey-title">
+    <div class="container journey-grid">
+      <div class="journey-copy">
+        <p class="eyebrow eyebrow-clay">Our journey</p>
+        <h2 id="journey-title">A local call that keeps carrying the Gospel forward.</h2>
+        <p>Since 2017, Nezeza Ijuru has gathered people around one enduring hope: Jesus Christ is able to save, satisfy,
+          and transform lives.</p>
+        <div class="action-row compact-actions"><a class="text-link" routerLink="/about">Explore our history <i
+              class="fa-solid fa-arrow-right" aria-hidden="true"></i></a><a class="text-link"
+            routerLink="/conferences">Browse conferences <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+      </div>
+      <ol class="journey-list">
+        @for (milestone of milestones; track milestone.title; let index = $index) {
+        <li><span class="journey-step" aria-hidden="true">0{{ index + 1 }}</span>
+          <div>
+            <p>{{ milestone.year }}</p>
+            <h3>{{ milestone.title }}</h3><span>{{ milestone.description }}</span>
+          </div>
+        </li>
+        }
+      </ol>
+    </div>
+  </section> -->
+
+  <section class="impact-section" aria-labelledby="impact-title">
+    <div class="container">
+      <div class="section-heading-row section-heading-light">
+        <div>
+          <p class="eyebrow eyebrow-gold">Our impact</p>
+
+          <h2 id="impact-title">
+            Fruit that goes beyond the gathering.
+          </h2>
+
+          <p class="section-description">
+            Since 2017, Nezeza Ijuru has carried the Gospel into lives, homes,
+            and communities through evangelism, discipleship, and practical
+            expressions of God’s love.
+          </p>
+        </div>
+
+        <span class="placeholder-label placeholder-label-light">
+          Impact reported since 2017
+        </span>
+      </div>
+
+      <div class="impact-grid">
+        @for (metric of impact; track metric.label) {
+        <div class="impact-metric">
+          <strong>{{ metric.value }}</strong>
+          <span>{{ metric.label }}</span>
+          <small>{{ metric.note }}</small>
+        </div>
+        }
+      </div>
+
+      <article class="impact-story">
+        <span class="story-mark" aria-hidden="true">“</span>
+
+        <p>
+          Our desire is not only to gather people, but to see lives reconciled
+          to God, believers growing in Christ, families strengthened, and the
+          love of God made visible through practical service.
+        </p>
+
+        <a class="text-link text-link-light" routerLink="/media">
+          Explore the media
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <section class="organization-section conferences-preview" aria-labelledby="conferences-title">
+    <div class="container">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow eyebrow-sky">Our journey through the years</p>
+
+          <h2 id="conferences-title">
+            Every edition carries one mission into a new season.
+          </h2>
+
+          <p class="section-description">
+            Since 2017, each Nezeza Ijuru edition has carried a distinct theme
+            while continuing the same call: proclaim Christ, make disciples,
+            and see lives transformed by the Gospel.
+          </p>
+        </div>
+
+        <a class="text-link" routerLink="/conferences">
+          Explore all editions
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="conference-card-grid">
+        @for (conference of conferences(); track conference.id; let index = $index) {
+        <a class="conference-archive-card conference-archive-card-{{ index % 3 === 0 ? 'green' : index % 3 === 1 ? 'gold' : 'clay' }}"
+          [routerLink]="['/conferences', conference.slug]">
+          <span class="placeholder-label">
+            {{ conferenceNumber(conference) }}
+          </span>
+
+          <div class="conference-card-art" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+
+          <p>{{ conference.year }}</p>
+
+          <h3>{{ conference.theme }}</h3>
+
+          <span>
+            {{ conference.summary || conference.description || conference.theme }}
+          </span>
+
+          <b>
+            Explore this edition
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          </b>
+        </a>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- <section class="organization-section involve-section" aria-labelledby="involve-title">
+    <div class="involve-shape involve-shape-left" aria-hidden="true"></div>
+    <div class="involve-shape involve-shape-right" aria-hidden="true"></div>
+    <div class="container involve-grid">
+      <div>
+        <p class="eyebrow eyebrow-clay">There is room for you</p>
+        <h2 id="involve-title">Come as you are. Serve with what you carry.</h2>
+        <p>Nezeza Ijuru grows through prayerful, generous participation from a whole community.</p>
+      </div>
+      <div class="involvement-list">@for (option of involvement; track option.title) {<a
+          [routerLink]="option.href"><span><strong>{{ option.title }}</strong><small>{{ option.description
+              }}</small></span><i class="involvement-link-icon fa-solid fa-arrow-right" aria-hidden="true"></i></a>}
+      </div>
+    </div>
+  </section> -->
+
+  <section class="organization-section media-section" aria-labelledby="media-title">
+    <div class="container">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow eyebrow-green">Media & stories</p>
+
+          <h2 id="media-title">
+            See the mission. Hear the message. Remember the stories.
+          </h2>
+
+          <p class="section-description">
+            Explore moments from Nezeza Ijuru through photos, messages,
+            testimonies, worship, and stories from the different expressions
+            of the mission.
+          </p>
+        </div>
+
+        <a class="text-link" routerLink="/media">
+          Explore media
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="media-grid">
+
+        <a class="media-tile media-tile-gallery" routerLink="/media">
+          <i class="media-icon fa-solid fa-images" aria-hidden="true"></i>
+
+          <div>
+            <p>Gallery</p>
+            <h3>Moments from every expression</h3>
+            <small>
+              Explore photos from evangelism, outreach, family gatherings,
+              worship, conferences, and community service.
+            </small>
+          </div>
+        </a>
+
+        <a class="media-tile media-tile-video" routerLink="/media/livestream">
+          <i class="media-icon fa-solid fa-circle-play" aria-hidden="true"></i>
+
+          <div>
+            <p>Watch & listen</p>
+            <h3>Carry the message beyond the gathering</h3>
+            <small>
+              Watch sermons, worship, testimonies, highlights, and live
+              broadcasts from Nezeza Ijuru.
+            </small>
+          </div>
+        </a>
+
+        <a class="media-tile media-tile-stories" routerLink="/media">
+          <i class="media-icon fa-solid fa-book-open" aria-hidden="true"></i>
+
+          <div>
+            <p>Stories & testimonies</p>
+            <h3>Lives touched by the Gospel</h3>
+            <small>
+              Read stories of salvation, transformation, restored families,
+              service, and hope from across the Nezeza Ijuru journey.
+            </small>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+</main>

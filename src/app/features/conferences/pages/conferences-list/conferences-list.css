@@ -1,0 +1,45 @@
+:host { display: block; color: var(--brand-navy); }
+.container { width: min(76rem, calc(100% - 3rem)); margin-inline: auto; }
+.page-hero { padding-block: clamp(5rem, 10vw, 9rem); background: var(--brand-navy); color: var(--brand-cream); }
+.page-hero h1 { margin-top: 1rem; color: inherit; font-size: clamp(3.25rem, 8vw, 7rem); letter-spacing: -0.07em; line-height: .88; }
+.page-hero > div > p:last-child { max-width: 42rem; margin-top: 1.5rem; color: rgb(249 242 214 / 78%); font-size: 1.1rem; line-height: 1.7; }
+.eyebrow { color: var(--brand-green); font-size: .75rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.page-hero .eyebrow, .conference-cta .eyebrow { color: var(--brand-gold); }
+.conference-state { display: grid; place-items: center; gap: .75rem; min-height: 20rem; padding: 3rem 1rem; text-align: center; }
+.conference-state i { color: var(--brand-green); font-size: 2rem; }
+.conference-state h2 { color: inherit; }
+.conference-state p { max-width: 32rem; opacity: .75; }
+.conference-state button { padding: .75rem 1.1rem; border: 0; border-radius: 999px; background: var(--brand-navy); color: var(--brand-cream); font-weight: 800; cursor: pointer; }
+.next-conference { padding-block: clamp(4rem, 8vw, 7rem); }
+.next-grid { display: grid; grid-template-columns: minmax(16rem, 1fr) minmax(0, 1.1fr); align-items: center; gap: clamp(2.5rem, 7vw, 6rem); }
+.next-image { position: relative; overflow: hidden; border-radius: 1.25rem; background: var(--brand-navy); }
+.next-image img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.next-image span { position: absolute; right: 1rem; bottom: 1rem; padding: .45rem .7rem; border-radius: 999px; background: var(--brand-cream); font-weight: 800; }
+.next-copy h2, .section-heading h2, .conference-cta h2 { margin-top: .75rem; color: inherit; font-size: clamp(2.25rem, 5vw, 4.5rem); letter-spacing: -.06em; line-height: .95; }
+.next-copy > p:not(.eyebrow) { margin-top: 1.25rem; line-height: 1.7; opacity: .78; }
+dl { display: grid; gap: .75rem; margin-top: 2rem; }
+dl div { display: grid; grid-template-columns: 5rem 1fr; gap: 1rem; padding-top: .75rem; border-top: 1px solid rgb(47 72 88 / 16%); }
+dt { color: var(--brand-green); font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+dd { margin: 0; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; margin-top: 2rem; }
+.button-link { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.1rem; border-radius: 999px; background: var(--brand-navy); color: var(--brand-cream); font-weight: 800; }
+.text-link { color: var(--brand-green); font-weight: 800; text-decoration: underline; text-underline-offset: .25em; }
+.archive { padding-block: clamp(4rem, 8vw, 7rem); background: #f2eddf; }
+.section-heading { display: grid; grid-template-columns: 1fr .7fr; gap: 2rem; align-items: end; margin-bottom: 2.5rem; }
+.section-heading > p { max-width: 30rem; line-height: 1.7; opacity: .75; }
+.conference-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.conference-card { position: relative; min-height: 23rem; overflow: hidden; border-radius: 1rem; background: var(--brand-navy); color: var(--brand-cream); }
+.conference-card img { width: 100%; height: 100%; object-fit: cover; opacity: .58; transition: transform 250ms ease; }
+.conference-card:hover img { transform: scale(1.05); }
+.card-status { position: absolute; top: 1rem; left: 1rem; padding: .35rem .6rem; border-radius: 999px; background: var(--brand-green); font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+.card-copy { position: absolute; right: 1.25rem; bottom: 1.25rem; left: 1.25rem; }
+.card-copy p { margin: 0; color: var(--brand-gold); font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.card-copy strong { display: block; margin-top: .25rem; font-size: 2rem; }
+.card-copy h3 { margin-top: .75rem; color: inherit; font-size: 1.35rem; line-height: 1.1; }
+.card-copy b { display: inline-flex; gap: .45rem; align-items: center; margin-top: 1.25rem; font-size: .85rem; }
+.conference-cta { padding-block: clamp(4rem, 8vw, 7rem); background: var(--brand-green); color: var(--brand-cream); }
+.conference-cta h2 { max-width: 13ch; color: inherit; }
+.conference-cta > div > div { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 2rem; }
+.conference-cta a { color: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: .25em; }
+@media (max-width: 800px) { .container { width: min(100% - 2rem, 76rem); } .next-grid, .section-heading { grid-template-columns: 1fr; } .conference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .conference-grid { grid-template-columns: 1fr; } dl div { grid-template-columns: 1fr; gap: .25rem; } }

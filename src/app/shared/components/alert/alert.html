@@ -1,0 +1,137 @@
+@let item = alert();
+
+<article class="alert" [class.alert--primary]="
+    item.color === 'primary'
+  " [class.alert--success]="
+    item.color === 'success'
+  " [class.alert--warning]="
+    item.color === 'warning'
+  " [class.alert--danger]="
+    item.color === 'danger' ||
+    item.color === 'error'
+  " [class.alert--info]="
+    item.color === 'info'
+  " [class.alert--confirmation]="
+    item.color === 'confirmation'
+  " [class.alert--solid]="
+    item.appearance === 'solid'
+  " [class.alert--soft]="
+    item.appearance === 'soft'
+  " [class.alert--outline]="
+    item.appearance === 'outline'
+  " [class.alert--centered]="
+    item.mode !== 'toast'
+  " [class.alert--toast-left]="
+    item.mode === 'toast' &&
+    item.position === 'top-left'
+  " [class.alert--toast-right]="
+    item.mode === 'toast' &&
+    item.position === 'top-right'
+  " [class.alert--toast-center]="
+    item.mode === 'toast' &&
+    item.position === 'center'
+  " [class.alert--closing]="
+    item.closing
+  " [attr.role]="
+    item.mode === 'toast'
+      ? (
+          urgent()
+            ? 'alert'
+            : 'status'
+        )
+      : null
+  " [attr.aria-atomic]="
+    item.mode === 'toast'
+      ? 'true'
+      : null
+  ">
+
+  <!-- =====================================================================
+       Icon
+       ===================================================================== -->
+
+  <span class="alert__icon" aria-hidden="true">
+    <i [class]="iconClass()"></i>
+  </span>
+
+
+  <!-- =====================================================================
+       Content
+       ===================================================================== -->
+
+  <div class="alert__body">
+
+    @if (item.title) {
+    <h2 class="alert__title">
+      {{ item.title }}
+    </h2>
+    }
+
+    <p class="alert__message" [id]="'alert-message-' + item.id">
+      {{ item.message }}
+    </p>
+
+
+    <!-- ===================================================================
+         Confirmation buttons
+         =================================================================== -->
+
+    @if (
+    item.mode === 'confirmation'
+    ) {
+    <div class="alert__actions">
+
+      <app-button color="neutral" appearance="outline" autofocus (buttonClick)="cancel.emit()">
+        {{
+        item.cancelText ||
+        'Cancel'
+        }}
+      </app-button>
+
+      <app-button [color]="
+            item.color === 'danger' ||
+            item.color === 'error'
+              ? 'danger'
+              : 'primary'
+          " appearance="solid" (buttonClick)="confirm.emit()">
+        {{
+        item.confirmText ||
+        'Confirm'
+        }}
+      </app-button>
+
+    </div>
+    }
+
+
+    <!-- ===================================================================
+         Optional custom action
+         =================================================================== -->
+
+    @else if (item.action) {
+    <div class="alert__actions">
+
+      <app-button color="primary" appearance="soft" size="small" (buttonClick)="action.emit()">
+        {{ item.action.label }}
+      </app-button>
+
+    </div>
+    }
+
+  </div>
+
+
+  <!-- =====================================================================
+       Dismiss
+       ===================================================================== -->
+
+  @if (
+  item.dismissible &&
+  item.mode !== 'confirmation'
+  ) {
+  <button type="button" class="alert__close" aria-label="Dismiss notification" (click)="dismiss.emit()">
+    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+  </button>
+  }
+
+</article>

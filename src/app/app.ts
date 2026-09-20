@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { SeoService } from './core';
 
 @Component({
   selector: 'app-root',
@@ -7,5 +8,7 @@ import { Component, signal } from '@angular/core';
   templateUrl: './app.html',
 })
 export class App {
-  protected readonly title = signal('web');
+  protected readonly title = signal('Nezeza Ijuru');
+
+  constructor(private readonly seo: SeoService) {}
 }

@@ -1,0 +1,9 @@
+<span class="loader" [class.loader--small]="size === 'small'" [class.loader--medium]="size === 'medium'"
+  [class.loader--large]="size === 'large'" [class.loader--primary]="primary" role="status" aria-live="polite"
+  [attr.aria-label]="label">
+  <span class="loader__spinner" aria-hidden="true"></span>
+
+  <span class="sr-only">
+    {{ label }}
+  </span>
+</span>

@@ -1,0 +1,18 @@
+<span class="badge" [class.badge--small]="size === 'small'" [class.badge--medium]="size === 'medium'"
+  [class.badge--large]="size === 'large'" [class.badge--solid]="appearance === 'solid'"
+  [class.badge--soft]="appearance === 'soft'" [class.badge--outline]="appearance === 'outline'"
+  [class.badge--primary]="color === 'primary'" [class.badge--neutral]="color === 'neutral'"
+  [class.badge--blue]="color === 'blue'" [class.badge--green]="color === 'green'" [class.badge--red]="color === 'red'"
+  [class.badge--yellow]="color === 'yellow'" [class.badge--orange]="color === 'orange'"
+  [class.badge--purple]="color === 'purple'" [class.badge--teal]="color === 'teal'"
+  [class.badge--success]="color === 'success'" [class.badge--warning]="color === 'warning'"
+  [class.badge--danger]="color === 'danger'" [class.badge--info]="color === 'info'" [class.badge--pill]="pill"
+  [attr.aria-label]="ariaLabel ?? null">
+  @if (dot) {
+  <span class="badge__dot" aria-hidden="true"></span>
+  }
+
+  <span class="badge__content">
+    <ng-content />
+  </span>
+</span>

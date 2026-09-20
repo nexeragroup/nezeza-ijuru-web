@@ -1,0 +1,172 @@
+<main class="conference-detail-page">
+  @if (loading()) {
+    <section class="detail-state" aria-live="polite">
+      <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+      <h1>Loading conference…</h1>
+      <p>We are retrieving its programs, dates, and events.</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="detail-state" role="alert">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <h1>We could not load this conference.</h1>
+      <p>It may not be published yet, or the service may be temporarily unavailable.</p>
+      <div class="actions">
+        <button type="button" (click)="loadConference()">Try again</button
+        ><a routerLink="/conferences">All conferences</a>
+      </div>
+    </section>
+  } @else if (conference(); as item) {
+    <section class="conference-hero">
+      <div class="container">
+        <a routerLink="/conferences"
+          ><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All conferences</a
+        >
+        <p class="eyebrow">{{ item.isCurrent ? 'Current conference' : 'Conference archive' }}</p>
+        <strong class="year">{{ item.year }}</strong>
+        <h1>{{ item.title }}</h1>
+        <p>{{ item.summary || item.theme }}</p>
+        <div class="hero-meta">
+          <span
+            ><i class="fa-regular fa-calendar" aria-hidden="true"></i
+            >{{
+              item.startDate ? (item.startDate | date: 'longDate') : 'Date to be announced'
+            }}</span
+          ><span
+            ><i class="fa-solid fa-layer-group" aria-hidden="true"></i
+            >{{ item.programs?.length || 0 }} programs</span
+          >
+        </div>
+      </div>
+    </section>
+
+    <section class="conference-overview">
+      <div class="container overview-grid">
+        <div>
+          <p class="eyebrow">Conference overview</p>
+          <h2>{{ item.theme }}</h2>
+          <p>
+            {{
+              item.description ||
+                item.summary ||
+                'More conference details will be shared by the campaign team.'
+            }}
+          </p>
+          <a class="detail-link" routerLink="/contact"
+            >Ask the team <i class="fa-solid fa-arrow-right" aria-hidden="true"></i
+          ></a>
+        </div>
+        <aside aria-label="Conference information">
+          <h3>Conference information</h3>
+          <dl>
+            <div>
+              <dt>Status</dt>
+              <dd>{{ item.isCurrent ? 'Current' : 'Completed' }}</dd>
+            </div>
+            <div>
+              <dt>Starts</dt>
+              <dd>
+                {{ item.startDate ? (item.startDate | date: 'longDate') : 'To be announced' }}
+              </dd>
+            </div>
+            <div>
+              <dt>Ends</dt>
+              <dd>{{ item.endDate ? (item.endDate | date: 'longDate') : 'To be announced' }}</dd>
+            </div>
+            <div>
+              <dt>Programs</dt>
+              <dd>{{ item.programs?.length || 0 }}</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <section class="conference-programs" aria-labelledby="conference-programs-title">
+      <div class="container">
+        <p class="eyebrow">Conference programs</p>
+        <h2 id="conference-programs-title">What happened during the conference.</h2>
+        @if (item.programs?.length) {
+          <div class="program-list">
+            @for (assignment of item.programs; track assignment.id; let index = $index) {
+              <article class="program-card" [class.program-card--featured]="assignment.isFeatured">
+                <header>
+                  <span class="program-number">{{ index + 1 | number: '2.0-0' }}</span>
+                  <div>
+                    <div class="program-labels">
+                      <p>{{ assignment.isFeatured ? 'Featured program' : 'Conference program' }}</p>
+                      <span>Program {{ index + 1 }}</span>
+                    </div>
+                    <h3>{{ assignment.program.name }}</h3>
+                  </div>
+                  <a
+                    [routerLink]="['/conferences', item.id, 'program', assignment.id]"
+                    [attr.aria-label]="'View details for ' + assignment.program.name"
+                    ><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i
+                  ></a>
+                </header>
+                <p class="program-summary">
+                  {{
+                    assignment.conferenceSummary ||
+                      assignment.program.summary ||
+                      'Program details will be added soon.'
+                  }}
+                </p>
+                @if (assignment.program.description) {
+                  <p class="program-description">{{ assignment.program.description }}</p>
+                }
+                <div class="program-facts" aria-label="Program facts">
+                  <span
+                    ><i class="fa-regular fa-calendar-check" aria-hidden="true"></i
+                    >{{ assignment.events?.length || 0 }}
+                    {{ assignment.events?.length === 1 ? 'event' : 'events' }}</span
+                  ><span
+                    ><i class="fa-solid fa-list-check" aria-hidden="true"></i
+                    >{{ sessionCount(assignment) }}
+                    {{ sessionCount(assignment) === 1 ? 'session' : 'sessions' }}</span
+                  >
+                </div>
+                @if (assignment.events?.length) {
+                  <div class="events">
+                    @for (event of assignment.events ?? []; track event.id) {
+                      <article class="event-card">
+                        <div class="event-date">
+                          <strong>{{ event.startAt | date: 'dd' : event.timezone }}</strong
+                          ><span>{{ event.startAt | date: 'MMM yyyy' : event.timezone }}</span>
+                        </div>
+                        <div>
+                          <div class="event-meta">
+                            <span>{{ event.eventType }}</span
+                            ><span>{{ eventStatus(event.eventStatus) }}</span>
+                          </div>
+                          <h4>{{ event.title }}</h4>
+                          <p>
+                            {{
+                              event.summary ||
+                                event.description ||
+                                'More details will be shared soon.'
+                            }}
+                          </p>
+                          <time [attr.datetime]="event.startAt"
+                            >{{ formatDate(event.startAt, event.timezone) }} –
+                            {{ formatDate(event.endAt, event.timezone) }}</time
+                          ><span class="venue"
+                            ><i class="fa-solid fa-location-dot" aria-hidden="true"></i
+                            >{{ event.defaultVenue?.name || event.locationMode }}</span
+                          >
+                        </div>
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <p class="empty">No events have been added to this program yet.</p>
+                }
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="empty">No programs have been published for this conference yet.</p>
+        }
+      </div>
+    </section>
+  }
+</main>

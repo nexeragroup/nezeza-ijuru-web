@@ -1,0 +1,86 @@
+<main class="conferences-page">
+  <header class="page-hero">
+    <div class="container">
+      <p class="eyebrow">The annual gathering</p>
+      <h1>Every conference,<br />a fresh call to Christ.</h1>
+      <p>Explore the documented chapters of Nezeza Ijuru and the current conference being prepared in prayer.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <section class="conference-state" aria-live="polite">
+      <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+      <h2>Loading conferences…</h2>
+      <p>We are retrieving the latest published conference information.</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="conference-state" role="alert">
+      <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i>
+      <h2>Conferences are temporarily unavailable.</h2>
+      <p>Please try again. No unverified conference information will be shown.</p>
+      <button type="button" (click)="loadConferences()">Try again</button>
+    </section>
+  } @else if (!conferences().length) {
+    <section class="conference-state">
+      <h2>No published conferences yet.</h2>
+      <p>Conference information will appear here after it is published by the team.</p>
+    </section>
+  } @else {
+    @if (currentConference(); as current) {
+      <section class="next-conference">
+        <div class="container next-grid">
+          <div class="next-image">
+            <img [src]="conferenceImage(0)" [alt]="current.title + ' conference'" />
+            <span>{{ current.year }}</span>
+          </div>
+          <div class="next-copy">
+            <p class="eyebrow">Current conference</p>
+            <h2>{{ current.title }}</h2>
+            <p>{{ current.summary || current.description || current.theme }}</p>
+            <dl>
+              <div><dt>Theme</dt><dd>{{ current.theme }}</dd></div>
+              <div><dt>Dates</dt><dd>{{ current.startDate || 'To be announced' }} — {{ current.endDate || 'To be announced' }}</dd></div>
+            </dl>
+            <div class="actions">
+              <a class="button-link" [routerLink]="['/conferences', current.slug]" (click)="selectConference(current)">Explore conference <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+              <a class="text-link" routerLink="/contact">Receive updates</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <section class="archive" aria-labelledby="archive-title">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">The archive</p>
+            <h2 id="archive-title">Documented conferences.<br />One enduring mission.</h2>
+          </div>
+          <p>Every item below comes directly from the published conference records maintained by the Nezeza Ijuru team.</p>
+        </div>
+        <div class="conference-grid">
+          @for (conference of archivedConferences(); track conference.id; let index = $index) {
+            <a class="conference-card" [routerLink]="['/conferences', conference.slug]" (click)="selectConference(conference)">
+              <img [src]="conferenceImage(index + 1)" [alt]="conference.title + ' conference'" loading="lazy" />
+              <span class="card-status">Published</span>
+              <div class="card-copy">
+                <div><p>{{ conferenceNumber(conference) }}</p><strong>{{ conference.year }}</strong></div>
+                <h3>{{ conference.theme }}</h3>
+                <b>Explore conference <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></b>
+              </div>
+            </a>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <section class="conference-cta">
+    <div class="container">
+      <p class="eyebrow">Be part of the next chapter</p>
+      <h2>Come ready to pray, serve, and invite someone.</h2>
+      <div><a routerLink="/contact">Become a volunteer</a><a routerLink="/give">Give with us <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+    </div>
+  </section>
+</main>

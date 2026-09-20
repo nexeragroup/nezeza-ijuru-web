@@ -1,0 +1,307 @@
+<main class="give-page">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">An offering of faith</p>
+
+        <h1>
+          Give with joy.
+          <br>
+          <em>Make heaven rejoice.</em>
+        </h1>
+
+        <p class="hero-intro">
+          Your generosity helps Nezeza Ijuru proclaim the Gospel,
+          form disciples, strengthen families, and serve communities
+          with practical love.
+        </p>
+
+        <div class="hero-actions">
+          <app-button href="#ways-to-give" variant="secondary" suffixIcon="fa-solid fa-arrow-down">
+            Ways to give
+          </app-button>
+
+          <app-button href="tel:+250788319899" variant="outline" prefixIcon="fa-solid fa-phone">
+            Call the ministry
+          </app-button>
+        </div>
+
+        <p class="secure-note">
+          <i class="fa-solid fa-shield-heart" aria-hidden="true"></i>
+
+          Use only giving details confirmed by Nezeza Ijuru.
+        </p>
+      </div>
+
+      <aside class="scripture-card" aria-label="Scripture about giving">
+        <span class="verse-mark" aria-hidden="true">
+          “
+        </span>
+
+        <blockquote>
+          Each of you should give what you have decided in your heart
+          to give, not reluctantly or under compulsion, for God loves
+          a cheerful giver.
+        </blockquote>
+
+        <cite>2 Corinthians 9:7</cite>
+      </aside>
+    </div>
+  </section>
+
+
+  <!-- Giving methods -->
+  <section id="ways-to-give" class="giving-methods">
+    <div class="container">
+      <header class="section-heading methods-heading">
+        <div>
+          <p class="eyebrow">Ways to give</p>
+          <h2>Choose what works for you.</h2>
+        </div>
+
+        <p>
+          Whether you are giving from Rwanda or supporting the ministry
+          from abroad, choose the giving method that is most convenient
+          for you.
+        </p>
+      </header>
+
+      <div class="giving-methods-grid">
+        @for (method of givingMethods; track method.id) {
+        <article class="giving-method-card" [class.giving-method-card--featured]="method.featured">
+          <div class="method-top">
+            <div class="method-icon">
+              <i class="fa-solid {{ method.icon }}" aria-hidden="true"></i>
+            </div>
+
+            <span class="method-badge">
+              {{ method.badge }}
+            </span>
+          </div>
+
+          <div class="method-content">
+            <p class="method-short-name">
+              {{ method.shortName }}
+            </p>
+
+            <h3>
+              {{ method.name }}
+            </h3>
+
+            <p class="method-description">
+              {{ method.description }}
+            </p>
+          </div>
+
+          <dl class="method-details">
+            @for (detail of method.details; track detail.label) {
+            <div>
+              <dt>{{ detail.label }}</dt>
+              <dd>{{ detail.value }}</dd>
+            </div>
+            }
+          </dl>
+
+          <!-- <a class="method-action" [href]="method.href">
+            <span>
+              {{ method.actionLabel }}
+            </span>
+
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a> -->
+        </article>
+        }
+      </div>
+
+      <div class="giving-help">
+        <div class="giving-help-icon">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+        </div>
+
+        <div>
+          <h3>Not sure which method to use?</h3>
+
+          <p>
+            Contact our ministry team and we will help you choose
+            the most appropriate giving option.
+          </p>
+        </div>
+
+        <a href="mailto:info@nezezaijuru.org?subject=Help%20with%20giving" class="giving-help-link">
+          Contact us
+
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Impact -->
+  <section class="impact">
+    <div class="container">
+      <header class="section-heading">
+        <div>
+          <p class="eyebrow">
+            Where your offering serves
+          </p>
+
+          <h2>
+            Generosity made visible.
+          </h2>
+        </div>
+
+        <p>
+          Every gift supports the shared mission of reaching people
+          with the Gospel and caring for the communities around us.
+        </p>
+      </header>
+
+      <div class="impact-grid">
+        @for (area of impactAreas; track area.title) {
+        <article>
+          <span class="impact-number">
+            0{{ $index + 1 }}
+          </span>
+
+          <div class="icon-wrap">
+            <i class="fa-solid {{ area.icon }}" aria-hidden="true"></i>
+          </div>
+
+          <h3>
+            {{ area.title }}
+          </h3>
+
+          <p>
+            {{ area.text }}
+          </p>
+        </article>
+        }
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Giving process -->
+  <section class="giving-path">
+    <div class="container path-grid">
+      <div class="path-copy">
+        <p class="eyebrow">
+          How to give
+        </p>
+
+        <h2>
+          Simple.
+          <br>
+          Secure.
+          <br>
+          Purposeful.
+        </h2>
+
+        <p>
+          Giving should be simple. Choose your preferred payment
+          channel, confirm the correct ministry details and complete
+          your offering.
+        </p>
+
+        <a href="mailto:info@nezezaijuru.org?subject=Giving%20instructions">
+          Email info&#64;nezezaijuru.org
+
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <ol>
+        @for (step of steps; track step.title) {
+        <li>
+          <span>
+            0{{ $index + 1 }}
+          </span>
+
+          <div>
+            <h3>
+              {{ step.title }}
+            </h3>
+
+            <p>
+              {{ step.text }}
+            </p>
+          </div>
+        </li>
+        }
+      </ol>
+    </div>
+  </section>
+
+
+  <!-- Stewardship -->
+  <section class="stewardship">
+    <div class="container stewardship-grid">
+      <div>
+        <p class="eyebrow">
+          Faithful stewardship
+        </p>
+
+        <h2>
+          Given with purpose.
+          <br>
+          Handled with care.
+        </h2>
+      </div>
+
+      <div class="commitments">
+        @for (commitment of commitments; track commitment.title) {
+        <article>
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+
+          <div>
+            <h3>
+              {{ commitment.title }}
+            </h3>
+
+            <p>
+              {{ commitment.text }}
+            </p>
+          </div>
+        </article>
+        }
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Closing -->
+  <section class="closing">
+    <div class="container">
+      <p class="eyebrow">
+        Thank you for standing with the mission
+      </p>
+
+      <h2>
+        Your offering becomes part of a story bigger than any one of us.
+      </h2>
+
+      <p class="closing-description">
+        Every act of generosity helps us continue creating spaces where
+        lives can encounter Jesus and communities can experience His love.
+      </p>
+
+      <div>
+        <app-button href="#ways-to-give" variant="secondary" suffixIcon="fa-solid fa-heart">
+          Give now
+        </app-button>
+
+        <a class="text-link" routerLink="/programs">
+          See the mission at work
+
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>

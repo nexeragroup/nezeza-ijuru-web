@@ -1,0 +1,91 @@
+:host {
+  display: inline-flex;
+}
+
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+.loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: currentColor;
+}
+
+.loader__spinner {
+  display: block;
+
+  width: 1.5rem;
+  height: 1.5rem;
+
+  border:
+    0.15rem solid currentColor;
+
+  border-right-color:
+    transparent;
+
+  border-radius:
+    var(--radius-full);
+
+  animation:
+    loader-spin 0.7s linear infinite;
+}
+
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.loader--small .loader__spinner {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.125rem;
+}
+
+.loader--medium .loader__spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.loader--large .loader__spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-width: 0.2rem;
+}
+
+
+/* ==========================================================================
+   Theme
+   ========================================================================== */
+
+.loader--color-primary {
+  color:
+    var(--color-primary);
+}
+
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes loader-spin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .loader__spinner {
+    animation-duration:
+      1.5s;
+  }
+}

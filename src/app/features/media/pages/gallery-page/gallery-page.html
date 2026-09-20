@@ -1,0 +1,19 @@
+<main class="gallery-page container">
+  <p class="eyebrow">Media library</p>
+  <h1>{{ album() }}</h1>
+  <p>Browse photographs from Nezeza Ijuru gatherings, programs, and conferences.</p>
+  @if (loading()) {
+    <p class="gallery-state" aria-live="polite">Loading the gallery…</p>
+  } @else if (error()) {
+    <p class="gallery-state" role="alert">The gallery could not be loaded. Please try again later.</p>
+  } @else if (!items().length) {
+    <p class="gallery-state">No photographs have been published yet.</p>
+  } @else {
+    <div class="gallery-grid">
+      @for (item of items(); track item.id) {
+        <app-media-card [item]="item" />
+      }
+    </div>
+  }
+  <a routerLink="/media">Back to media <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+</main>

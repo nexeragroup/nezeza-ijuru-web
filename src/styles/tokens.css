@@ -1,0 +1,235 @@
+:root {
+  color-scheme: light;
+
+  /* Permanent brand palette */
+  --brand-cream: #f9f2d6;
+  --brand-navy: #2f4858;
+  --brand-green: #4b8179;
+  --brand-gold: #b69021;
+
+  /* Legacy aliases constrained to the four-color system */
+  --brand-clay: var(--brand-green);
+  --brand-sky: var(--brand-gold);
+
+  /* Light theme */
+  --background: var(--brand-cream);
+  --background-muted: #f2eddf;
+  --surface: #fffdf4;
+  --surface-hover: #f2eddf;
+  --brand-panel: #f9f2d6;
+
+  --border: rgb(47 72 88 / 16%);
+
+  /* Main action */
+  --primary: #2f4858;
+  --primary-hover: var(--brand-navy);
+
+  /* Supporting action
+     Darkened slightly for accessible white text */
+  --secondary: var(--brand-navy);
+  --secondary-hover: var(--brand-navy);
+
+  /* Brand emphasis */
+  --accent: #b69021;
+  --accent-hover: var(--brand-gold);
+
+  /* Information */
+  --info: var(--brand-green);
+  --info-foreground: var(--brand-cream);
+  --info-soft: var(--brand-cream);
+  --info-border: var(--brand-green);
+  --info-text: var(--brand-navy);
+
+  /* Success */
+  --success: var(--brand-green);
+  --success-foreground: var(--brand-cream);
+  --success-soft: var(--brand-cream);
+  --success-border: var(--brand-cream);
+  --success-text: var(--brand-green);
+
+  /* Warning */
+  --warning: var(--brand-gold);
+  --warning-foreground: var(--brand-cream);
+  --warning-soft: var(--brand-cream);
+  --warning-border: var(--brand-cream);
+  --warning-text: var(--brand-navy);
+
+  /* Danger */
+  --danger: var(--brand-navy);
+  --danger-foreground: var(--brand-cream);
+  --danger-soft: var(--brand-cream);
+  --danger-border: var(--brand-cream);
+  --danger-text: var(--brand-navy);
+
+  /* Typography, shape, motion, and elevation */
+  --font-heading:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --font-body:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+  --shadow-xs: 0 1px 2px rgb(47 72 88 / 6%);
+  --shadow-sm: 0 6px 18px rgb(47 72 88 / 9%);
+  --shadow-md: 0 12px 30px rgb(47 72 88 / 14%);
+  --control-height: 3rem;
+  --transition-fast: 150ms ease;
+  --transition: 250ms ease;
+  --white: var(--brand-cream);
+
+  /* ======================================================
+     LIGHT MODE — TEXT COLORS
+  ====================================================== */
+
+  --text-primary: #2f4858; /* Headings and important text */
+  --text-secondary: rgb(47 72 88 / 78%); /* Paragraphs and descriptions */
+  --text-muted: rgb(47 72 88 / 64%); /* Metadata and supporting text */
+  --text-subtle: rgb(47 72 88 / 52%); /* Captions and less-important text */
+  --text-disabled: rgb(47 72 88 / 42%); /* Disabled controls */
+
+  --text-link: var(--brand-navy);
+  --text-link-hover: var(--brand-navy);
+
+  --text-inverse: var(--brand-cream); /* Text on navy/dark backgrounds */
+  --text-on-primary: var(--brand-cream);
+  --text-on-secondary: var(--brand-cream);
+  --text-on-accent: var(--brand-navy);
+
+  /* Existing variable compatibility */
+  --foreground: var(--text-primary);
+  --muted: var(--text-muted);
+  --primary-foreground: var(--text-on-primary);
+  --secondary-foreground: var(--text-on-secondary);
+  --accent-foreground: var(--text-on-accent);
+
+  /* Shared component compatibility aliases */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --border-width: 1px;
+  --border-width-thin: 1px;
+  --font-sans: var(--font-body);
+  --font-medium: 600;
+  --leading-tight: 1.2;
+  --duration-fast: var(--transition-fast);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-hover);
+  --color-primary-subtle: color-mix(in srgb, var(--primary) 10%, transparent);
+  --color-primary-light: color-mix(in srgb, var(--primary) 16%, transparent);
+  --color-on-primary: var(--text-on-primary);
+  --primary-subtle: var(--color-primary-subtle);
+  --primary-light: var(--color-primary-light);
+  --on-primary: var(--text-on-primary);
+  --slate-700: var(--brand-navy);
+  --slate-800: #243946;
+  --slate-900: #1b2c36;
+  --slate-100: #f2eddf;
+  --slate-200: #e7dfc9;
+  --green-600: var(--brand-green);
+  --green-700: #3c6c65;
+  --green-800: #315951;
+  --green-50: #edf6f3;
+  --green-100: #dcece8;
+  --blue-600: var(--brand-navy);
+  --blue-700: #243946;
+  --blue-800: #1b2c36;
+  --blue-50: #eef3f5;
+  --blue-100: #dce6ea;
+  --red-600: #b42318;
+  --red-700: #912018;
+  --red-800: #7a271a;
+  --red-50: #fef3f2;
+  --red-100: #fee4e2;
+  --yellow-600: var(--brand-gold);
+  --yellow-700: #8f7118;
+  --yellow-800: #745b13;
+  --yellow-50: #fff9e5;
+  --yellow-100: #fff0b8;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: var(--brand-navy);
+  --background-muted: var(--brand-navy);
+  --surface: var(--brand-navy);
+  --surface-hover: var(--brand-navy);
+  --brand-panel: var(--brand-navy);
+
+  --border: rgb(249 242 214 / 22%);
+
+  /* Cream becomes the strongest action on dark surfaces */
+  --primary: #f9f2d6;
+  --primary-hover: var(--brand-gold);
+
+  --secondary: var(--brand-green);
+  --secondary-hover: var(--brand-green);
+
+  --accent: var(--brand-gold);
+  --accent-hover: var(--brand-gold);
+
+  --info: var(--brand-green);
+  --info-foreground: var(--brand-navy);
+  --info-soft: var(--brand-navy);
+  --info-border: var(--brand-green);
+  --info-text: var(--brand-cream);
+
+  --success: var(--brand-green);
+  --success-foreground: var(--brand-navy);
+  --success-soft: var(--brand-navy);
+  --success-border: var(--brand-green);
+  --success-text: var(--brand-cream);
+
+  --warning: var(--brand-gold);
+  --warning-foreground: var(--brand-navy);
+  --warning-soft: var(--brand-navy);
+  --warning-border: var(--brand-gold);
+  --warning-text: var(--brand-cream);
+
+  --danger: var(--brand-gold);
+  --danger-foreground: var(--brand-navy);
+  --danger-soft: var(--brand-navy);
+  --danger-border: var(--brand-navy);
+  --danger-text: var(--brand-cream);
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 22%);
+  --shadow-sm: 0 8px 20px rgb(0 0 0 / 26%);
+  --shadow-md: 0 14px 34px rgb(0 0 0 / 34%);
+
+  /* ======================================================
+     DARK MODE — TEXT COLORS
+  ====================================================== */
+
+  --text-primary: #f9f2d6; /* Main cream-colored text */
+  --text-secondary: rgb(249 242 214 / 78%); /* Paragraphs and descriptions */
+  --text-muted: rgb(249 242 214 / 64%); /* Metadata and supporting text */
+  --text-subtle: rgb(249 242 214 / 52%); /* Captions and less-important text */
+  --text-disabled: rgb(249 242 214 / 42%); /* Disabled controls */
+
+  --text-link: var(--brand-green);
+  --text-link-hover: var(--brand-cream);
+
+  --text-inverse: var(--brand-navy); /* Text on cream/light backgrounds */
+  --text-on-primary: #2f4858;
+  --text-on-secondary: var(--brand-navy);
+  --text-on-accent: var(--brand-navy);
+
+  /* Existing variable compatibility */
+  --foreground: var(--text-primary);
+  --muted: var(--text-muted);
+  --primary-foreground: var(--text-on-primary);
+  --secondary-foreground: var(--text-on-secondary);
+  --accent-foreground: var(--text-on-accent);
+}

@@ -1,0 +1,33 @@
+.form-header {
+  margin-bottom: 1.75rem;
+}
+.form-header h2 {
+  margin: 0.45rem 0 0.65rem;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+}
+.form-header > p:last-child {
+  color: var(--muted);
+}
+form {
+  display: grid;
+  gap: 1.15rem;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.form-row--end {
+  justify-content: flex-end;
+}
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  font-size: var(--text-sm);
+}
+.field-error {
+  color: var(--danger);
+}

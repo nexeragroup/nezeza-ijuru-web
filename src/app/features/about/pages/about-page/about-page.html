@@ -1,0 +1,267 @@
+<main class="about-page">
+  <section class="page-hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">About Nezeza Ijuru</p>
+
+        <h1>Make heaven rejoice.</h1>
+
+        <p class="lead">
+          Nezeza Ijuru is the annual evangelism and discipleship mission of
+          Zion Temple Kimironko. Since 2017, it has carried one enduring call:
+          to see people reconciled to God through Jesus Christ, grow into
+          mature disciples, and live lives through which Christ is revealed.
+        </p>
+
+        <div class="actions">
+          <app-button variant="light" routerLink="/programs" suffixIcon="fa-solid fa-arrow-right">
+            Explore our programs
+          </app-button>
+
+          <a class="text-link" routerLink="/contact">
+            Connect with us
+          </a>
+        </div>
+      </div>
+
+      <figure>
+        <img src="/images/programs/evangelism.jpg" alt="People gathered during Nezeza Ijuru evangelism outreach" />
+
+        <figcaption>
+          Inspired by Luke 15:10
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="roots" aria-labelledby="roots-title">
+    <div class="container">
+      <div class="roots-heading">
+        <p class="eyebrow">Our roots</p>
+
+        <h2 id="roots-title">
+          A mission born from a wider ministry family.
+        </h2>
+
+        <p>
+          Nezeza Ijuru did not begin as an independent initiative. It grew
+          from a spiritual and ministry journey that begins with Authentic
+          Word Ministries, continues through Zion Temple Celebration Center
+          and Zion Temple Kimironko, and ultimately gave birth to the
+          Nezeza Ijuru mission.
+        </p>
+      </div>
+
+      <div class="roots-roadmap" aria-label="Ministry journey leading to Nezeza Ijuru">
+        <article class="roadmap-step">
+          <div class="roadmap-marker">
+            <span>01</span>
+          </div>
+
+          <div class="roadmap-content">
+            <p class="roadmap-type">Ministry</p>
+
+            <h3>Authentic Word Ministries</h3>
+
+            <p>
+              Founded by Apostle Dr. Paul M. Gitwaza, Authentic Word
+              Ministries is the wider ministry family from which Zion Temple
+              Celebration Center was established.
+            </p>
+          </div>
+        </article>
+
+        <article class="roadmap-step">
+          <div class="roadmap-marker">
+            <span>02</span>
+          </div>
+
+          <div class="roadmap-content">
+            <p class="roadmap-type">Church</p>
+
+            <h3>Zion Temple Celebration Center</h3>
+
+            <p>
+              The church expression of the ministry, serving through
+              different parishes and communities with a shared commitment
+              to the Gospel and the Great Commission.
+            </p>
+          </div>
+        </article>
+
+        <article class="roadmap-step">
+          <div class="roadmap-marker">
+            <span>03</span>
+          </div>
+
+          <div class="roadmap-content">
+            <p class="roadmap-type">Parish</p>
+
+            <h3>Zion Temple Kimironko</h3>
+
+            <p>
+              A local parish of Zion Temple Celebration Center where the
+              vision for Nezeza Ijuru was initiated as an evangelism mission
+              beginning within the local community.
+            </p>
+          </div>
+        </article>
+
+        <article class="roadmap-step roadmap-step-final">
+          <div class="roadmap-marker">
+            <span>04</span>
+          </div>
+
+          <div class="roadmap-content">
+            <p class="roadmap-type">Mission · Since 2017</p>
+
+            <h3>Nezeza Ijuru</h3>
+
+            <p>
+              An annual evangelism and discipleship mission calling people
+              to reconciliation with God through Jesus Christ, spiritual
+              maturity, and lives through which Christ is revealed.
+            </p>
+
+            <a class="text-link text-link-light" routerLink="/programs">
+              Explore the mission
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="leadership">
+    <div class="container">
+      <div class="leadership-heading">
+        <div>
+          <p class="eyebrow">Rooted in Zion Temple Kimironko</p>
+
+          <h2>
+            A mission born from the local church.
+          </h2>
+        </div>
+
+        <p>
+          Nezeza Ijuru was initiated by Zion Temple Kimironko in 2017
+          from a desire to fulfil the Great Commission beginning within
+          the local community and extending wherever the Gospel can be carried.
+        </p>
+      </div>
+
+      <div class="leader-grid">
+        @for (leader of leaders; track leader.name) {
+        <article class="leader-card">
+          <img class="leader-portrait" [src]="leader.image" [alt]="leader.name"
+            [style.object-position]="leader.imagePosition" loading="lazy" />
+
+          <div class="leader-copy">
+            <p class="leader-role">{{ leader.role }}</p>
+
+            <h3>{{ leader.name }}</h3>
+
+            <p>{{ leader.text }}</p>
+          </div>
+        </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="purpose">
+    <div class="container purpose-grid">
+      <div>
+        <p class="eyebrow">Why we exist</p>
+
+        <h2>
+          Reconciled to God. Growing in Christ. Revealing Christ.
+        </h2>
+      </div>
+
+      <div class="purpose-copy">
+        <p>
+          Nezeza Ijuru exists to proclaim the Gospel of Jesus Christ,
+          call people into reconciliation with God, nurture believers
+          toward spiritual maturity, and encourage lives in which the
+          character and fruit of Christ become visible.
+        </p>
+
+        <blockquote>
+          “There is joy in the presence of the angels of God over one
+          sinner who repents.”
+          <cite>Luke 15:10</cite>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section class="values">
+    <div class="container">
+      <p class="eyebrow">The heart of the mission</p>
+
+      <h2>One Gospel. A life transformed by Christ.</h2>
+
+      <div class="value-grid">
+        @for (value of values; track value.title) {
+        <article>
+          <span>
+            <i class="fa-solid {{ value.icon }}" aria-hidden="true"></i>
+          </span>
+
+          <h3>{{ value.title }}</h3>
+
+          <p>{{ value.text }}</p>
+        </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="story">
+    <div class="container story-grid">
+      <img src="/images/programs/community-care.jpg" alt="Nezeza Ijuru community outreach and compassionate service"
+        loading="lazy" />
+
+      <div>
+        <p class="eyebrow">Our journey</p>
+
+        <h2>
+          One mission carried through every edition.
+        </h2>
+
+        <ol>
+          @for (item of journey; track item.year) {
+          <li>
+            <strong>{{ item.year }}</strong>
+
+            <div>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.text }}</p>
+            </div>
+          </li>
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-cta">
+    <div class="container">
+      <p class="eyebrow">Make heaven rejoice</p>
+
+      <h2>Take part in the mission.</h2>
+
+      <p>
+        Pray with us, serve through the different expressions of
+        Nezeza Ijuru, support the mission, and help carry the Gospel
+        to another person.
+      </p>
+
+      <app-button class="cta-button" variant="light" routerLink="/contact" suffixIcon="fa-solid fa-arrow-right">
+        Get involved
+      </app-button>
+    </div>
+  </section>
+</main>

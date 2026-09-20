@@ -1,0 +1,294 @@
+:host {
+  --ink: var(--brand-navy);
+  --paper: var(--brand-cream);
+  --accent: var(--brand-green);
+  display: block;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.container {
+  width: min(76rem, calc(100% - 3rem));
+  margin: auto;
+}
+
+header {
+  padding: clamp(5rem, 10vw, 9rem) 0;
+  background: var(--ink);
+  color: var(--paper);
+  text-align: center;
+}
+
+h1,
+h2,
+h3 {
+  color: inherit;
+}
+
+header h1 {
+  max-width: 12ch;
+  margin: auto;
+  font-size: clamp(4rem, 9vw, 7rem);
+  letter-spacing: -0.075em;
+  line-height: 0.86;
+}
+
+header>div>p:last-child {
+  max-width: 43rem;
+  margin: 1.5rem auto 0;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.eyebrow {
+  margin-bottom: 0rem;
+  color: var(--accent);
+}
+
+.contact {
+  padding: clamp(4rem, 8vw, 7rem) 0;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: clamp(2rem, 7vw, 6rem);
+}
+
+aside h2,
+.form-title h2 {
+  font-size: clamp(2.3rem, 4vw, 3.6rem);
+  letter-spacing: -0.05em;
+}
+
+.details {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.details>a,
+.details>div {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--ink);
+}
+
+.details i {
+  display: grid;
+  width: 3rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.details small {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.note {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-left: 4px solid var(--accent);
+  line-height: 1.6;
+}
+
+form {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border-radius: 1.25rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--paper);
+  border-radius: 0.65rem;
+  background: transparent;
+  color: var(--paper);
+  padding: 0.85rem;
+}
+
+select option {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.consent {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.consent input {
+  width: 1rem;
+  margin-top: 0.2rem;
+  accent-color: var(--accent);
+}
+
+button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.9rem 1.3rem;
+  background: var(--accent);
+  color: var(--paper);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.expect {
+  padding: 5rem 0;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.expect>div>div {
+  display: flex;
+  gap: 1rem;
+}
+
+.expect article {
+  padding: 1.5rem;
+  border-top: 1px solid rgb(249 242 214 / 20%);
+}
+
+.expect strong {
+  font-size: 2rem;
+}
+
+.expect h3 {
+  margin-top: 2rem;
+  font-size: 1.35rem;
+}
+
+.expect article p {
+  margin-top: 0.6rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: min(100% - 2rem, 76rem);
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expect>div>div {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .two {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.contact-intro {
+  margin-top: 1.25rem;
+  max-width: 31rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  opacity: 0.76;
+}
+
+.form-title {
+  margin-bottom: 2rem;
+}
+
+.form-note {
+  margin: 0.75rem 0 0;
+  color: rgb(249 242 214 / 70%);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+form {
+  display: grid;
+  gap: 1.25rem;
+
+  padding: clamp(1.5rem, 4vw, 3rem);
+
+  border-radius: 1.25rem;
+
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.expect-heading {
+  max-width: 100%;
+  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.expect-heading h2 {
+  max-width: 16ch;
+
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.expect-heading>p:last-child {
+  margin-top: 1rem;
+  line-height: 1.7;
+  opacity: 0.75;
+}
+
+.expect-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.expect article {
+  padding: 1.5rem 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.expect strong {
+  color: var(--accent);
+  font-size: 2rem;
+}
+
+@media (max-width: 760px) {
+  .expect-grid {
+    grid-template-columns: 1fr;
+  }
+}

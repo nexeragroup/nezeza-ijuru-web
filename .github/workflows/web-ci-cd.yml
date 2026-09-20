@@ -1,0 +1,295 @@
+name: Nezeza Ijuru Web CI/CD
+
+on:
+  pull_request:
+    branches:
+      - staging
+      - main
+      - production
+  push:
+    branches:
+      - staging
+      - main
+      - production
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        type: choice
+        default: staging
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: nezeza-ijuru-web-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+permissions:
+  contents: read
+
+jobs:
+  target:
+    name: Resolve deployment target
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.target.outputs.environment }}
+      configuration: ${{ steps.target.outputs.configuration }}
+      compose-file: ${{ steps.target.outputs.compose-file }}
+      deploy: ${{ steps.target.outputs.deploy }}
+    steps:
+      - name: Resolve branch or manual target
+        id: target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          BASE_REF: ${{ github.base_ref }}
+          REQUESTED_TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+
+          target="${REQUESTED_TARGET}"
+          if [[ -z "${target}" ]]; then
+            target="${BASE_REF:-${REF_NAME}}"
+            if [[ "${target}" == "main" || "${target}" == "production" ]]; then
+              target="production"
+            else
+              target="staging"
+            fi
+          fi
+
+          case "${target}" in
+            staging)
+              configuration="staging"
+              compose_file="compose.staging.yml"
+              ;;
+            production)
+              configuration="prod"
+              compose_file="compose.production.yml"
+              ;;
+            *)
+              echo "Unsupported deployment target: ${target}" >&2
+              exit 1
+              ;;
+          esac
+
+          deploy=false
+          [[ "${EVENT_NAME}" != "pull_request" ]] && deploy=true
+
+          echo "environment=${target}" >> "${GITHUB_OUTPUT}"
+          echo "configuration=${configuration}" >> "${GITHUB_OUTPUT}"
+          echo "compose-file=${compose_file}" >> "${GITHUB_OUTPUT}"
+          echo "deploy=${deploy}" >> "${GITHUB_OUTPUT}"
+
+  quality:
+    name: Typecheck and proxy tests
+    needs: target
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable pnpm
+        shell: bash
+        run: corepack enable && corepack prepare pnpm@12.3.4 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck application and templates
+        run: |
+          pnpm exec tsc -p tsconfig.app.json --noEmit
+          pnpm exec ngc -p tsconfig.app.json --noEmit
+
+      - name: Test API proxy
+        run: pnpm test:proxy
+
+  build:
+    name: Build and publish ${{ needs.target.outputs.environment }} image
+    needs:
+      - target
+      - quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-name: ${{ steps.image.outputs.name }}
+      image-tag: ${{ steps.image.outputs.tag }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Generate image metadata
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_name="${IMAGE_NAME,,}"
+          image_tag="sha-${GITHUB_SHA}"
+          echo "name=${image_name}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${image_tag}" >> "${GITHUB_OUTPUT}"
+          echo "Image: ${image_name}:${image_tag}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish web image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            BUILD_CONFIGURATION=${{ needs.target.outputs.configuration }}
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+          cache-from: type=gha,scope=nezeza-ijuru-web-${{ needs.target.outputs.environment }}
+          cache-to: type=gha,mode=max,scope=nezeza-ijuru-web-${{ needs.target.outputs.environment }}
+
+  deploy:
+    name: Deploy ${{ needs.target.outputs.environment }} web
+    needs:
+      - target
+      - build
+    if: needs.target.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.target.outputs.environment }}
+      url: ${{ vars.WEB_SITE_URL }}
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "${SSH_PRIVATE_KEY}"
+          test -n "${SSH_KNOWN_HOSTS}"
+          install -m 700 -d "${HOME}/.ssh"
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > "${HOME}/.ssh/id_ed25519"
+          printf '%s\n' "${SSH_KNOWN_HOSTS}" > "${HOME}/.ssh/known_hosts"
+          chmod 600 "${HOME}/.ssh/id_ed25519" "${HOME}/.ssh/known_hosts"
+
+      - name: Verify deployment server
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SSH_HOST }}
+          SERVER_USER: ${{ secrets.SSH_USER }}
+          SERVER_PORT: ${{ vars.SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          SERVER_PORT="${SERVER_PORT:-22}"
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            -p "${SERVER_PORT}" "${SERVER_USER}@${SERVER_HOST}" \
+            "set -e
+             mkdir -p '${DEPLOY_PATH}'
+             test -w '${DEPLOY_PATH}'
+             command -v docker >/dev/null
+             command -v curl >/dev/null
+             docker version >/dev/null
+             docker compose version >/dev/null"
+
+      - name: Log deployment server in to GHCR
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SSH_HOST }}
+          SERVER_USER: ${{ secrets.SSH_USER }}
+          SERVER_PORT: ${{ vars.SSH_PORT }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          set -euo pipefail
+          SERVER_PORT="${SERVER_PORT:-22}"
+          test -n "${GHCR_USERNAME}"
+          test -n "${GHCR_TOKEN}"
+          printf '%s' "${GHCR_TOKEN}" | ssh -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            -p "${SERVER_PORT}" "${SERVER_USER}@${SERVER_HOST}" \
+            "docker login ghcr.io --username '${GHCR_USERNAME}' --password-stdin"
+
+      - name: Prepare runtime environment
+        shell: bash
+        env:
+          SSR_API_BASE_URL: ${{ vars.WEB_SSR_API_BASE_URL }}
+          SITE_URL: ${{ vars.WEB_SITE_URL }}
+          ROBOTS_INDEXABLE: ${{ vars.WEB_ROBOTS_INDEXABLE }}
+        run: |
+          set -euo pipefail
+          test -n "${SSR_API_BASE_URL}"
+          test -n "${SITE_URL}"
+          ROBOTS_INDEXABLE="${ROBOTS_INDEXABLE:-false}"
+          umask 077
+          {
+            printf 'NODE_ENV=production\n'
+            printf 'HOST=0.0.0.0\n'
+            printf 'PORT=4200\n'
+            printf 'SSR_API_BASE_URL=%s\n' "${SSR_API_BASE_URL}"
+            printf 'SITE_URL=%s\n' "${SITE_URL}"
+            printf 'ROBOTS_INDEXABLE=%s\n' "${ROBOTS_INDEXABLE}"
+          } > runtime.env
+
+      - name: Upload deployment files
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SSH_HOST }}
+          SERVER_USER: ${{ secrets.SSH_USER }}
+          SERVER_PORT: ${{ vars.SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+          COMPOSE_FILE: ${{ needs.target.outputs.compose-file }}
+        run: |
+          set -euo pipefail
+          SERVER_PORT="${SERVER_PORT:-22}"
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
+          test -f "${COMPOSE_FILE}"
+          scp -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            -P "${SERVER_PORT}" "${COMPOSE_FILE}" runtime.env scripts/deploy-web.sh \
+            "${SERVER_USER}@${SERVER_HOST}:${DEPLOY_PATH}/"
+
+      - name: Deploy and verify web container
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SSH_HOST }}
+          SERVER_USER: ${{ secrets.SSH_USER }}
+          SERVER_PORT: ${{ vars.SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH }}
+          IMAGE_NAME: ${{ needs.build.outputs.image-name }}
+          IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+          COMPOSE_FILE: ${{ needs.target.outputs.compose-file }}
+        run: |
+          set -euo pipefail
+          SERVER_PORT="${SERVER_PORT:-22}"
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/yves/nezeza-ijuru/client}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            -p "${SERVER_PORT}" "${SERVER_USER}@${SERVER_HOST}" \
+            "set -e
+             cd '${DEPLOY_PATH}'
+             chmod +x deploy-web.sh
+             ./deploy-web.sh '${IMAGE_NAME}' '${IMAGE_TAG}' '${COMPOSE_FILE}'"

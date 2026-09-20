@@ -1,0 +1,63 @@
+<main class="program-detail-page">
+  @if (loading()) {
+    <section class="program-detail-state" aria-live="polite">
+      <i class="fa-solid fa-circle-notch fa-spin state-loading-icon" aria-hidden="true"></i>
+      <p class="eyebrow">One moment</p>
+      <h1>Loading program…</h1>
+      <p>We are retrieving the latest published program details.</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="program-detail-state" role="alert" aria-labelledby="program-detail-error-title">
+      <span class="state-icon" aria-hidden="true">
+        <i
+          class="fa-solid"
+          [class.fa-link-slash]="errorKind() === 'not-found'"
+          [class.fa-cloud-arrow-down]="errorKind() === 'unavailable'"
+        ></i>
+      </span>
+      <p class="eyebrow">{{ errorKind() === 'not-found' ? 'Program unavailable' : 'A temporary pause' }}</p>
+      @if (errorKind() === 'not-found') {
+        <h1 id="program-detail-error-title">That program is no longer available.</h1>
+        <p>This program may have been unpublished or the link may be outdated. Explore the published programs below.</p>
+      } @else {
+        <h1 id="program-detail-error-title">We could not load this program.</h1>
+        <p>The program library is taking a short pause. Please try again, or browse the other published programs.</p>
+      }
+      <div class="program-detail-state-actions">
+        <button type="button" (click)="retry()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Try again</button>
+        <a routerLink="/programs">View all programs <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </div>
+    </section>
+  } @else if (program(); as program) {
+  <section class="program-detail-hero" [style.background-image]="'linear-gradient(90deg, rgb(47 72 88 / 88%), rgb(47 72 88 / 48%)), url(' + program.image + ')'">
+    <div class="container">
+      <a routerLink="/programs"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All programs</a>
+      <p class="eyebrow">{{ program.name }}</p>
+      <h1>{{ program.headline }}</h1>
+      <p>{{ program.summary || program.description }}</p>
+    </div>
+  </section>
+
+  <section class="program-detail-content">
+    <div class="container detail-grid">
+      <div>
+        <p class="eyebrow">The purpose</p>
+        <h2>Helping faith become a way of life.</h2>
+        <p>{{ program.description || program.summary || 'This program brings Gospel proclamation and practical formation together.' }}</p>
+        <a class="detail-link" routerLink="/contact">Serve in this program <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      <ol>
+        @for (step of program.steps; track step; let index = $index) {
+          <li><span>0{{ index + 1 }}</span><h3>{{ step }}</h3></li>
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="program-detail-cta">
+    <h2>Ready to take the next step?</h2>
+    <p>Talk with the team about attending, serving, or supporting this program.</p>
+    <a routerLink="/contact">Contact the team</a>
+  </section>
+  }
+</main>

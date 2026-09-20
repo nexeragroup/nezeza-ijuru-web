@@ -1,0 +1,651 @@
+:host {
+  display: block;
+}
+
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+.alert {
+  --alert-tone:
+    var(--primary);
+
+  --alert-subtle:
+    var(--primary-subtle);
+
+  --alert-light:
+    var(--primary-light);
+
+  --alert-on-solid:
+    var(--on-primary);
+
+  display: flex;
+  align-items: flex-start;
+
+  gap:
+    var(--space-3, 0.75rem);
+
+  width: 100%;
+
+  padding:
+    var(--space-4, 1rem);
+
+  border:
+    var(--border-width-thin, 1px) solid transparent;
+
+  border-radius:
+    var(--radius-lg, 0.75rem);
+
+  /* box-shadow:
+    var(--shadow-lg,
+      0 8px 24px rgb(0 0 0 / 15%)); */
+
+  overflow-wrap:
+    anywhere;
+
+  will-change:
+    transform,
+    opacity;
+}
+
+
+/* ==========================================================================
+   Colors
+   ========================================================================== */
+
+.alert--primary,
+.alert--confirmation {
+  --alert-tone:
+    var(--primary);
+
+  --alert-subtle:
+    var(--primary-subtle);
+
+  --alert-light:
+    var(--primary-light);
+
+  --alert-on-solid:
+    var(--on-primary);
+}
+
+
+.alert--success {
+  --alert-tone:
+    var(--green-600);
+
+  --alert-subtle:
+    var(--green-50);
+
+  --alert-light:
+    var(--green-100);
+
+  --alert-on-solid:
+    #ffffff;
+}
+
+
+.alert--warning {
+  --alert-tone:
+    var(--yellow-700);
+
+  --alert-subtle:
+    var(--yellow-50);
+
+  --alert-light:
+    var(--yellow-100);
+
+  --alert-on-solid:
+    #ffffff;
+}
+
+
+.alert--danger {
+  --alert-tone:
+    var(--red-600);
+
+  --alert-subtle:
+    var(--red-50);
+
+  --alert-light:
+    var(--red-100);
+
+  --alert-on-solid:
+    #ffffff;
+}
+
+
+.alert--info {
+  --alert-tone:
+    var(--blue-600);
+
+  --alert-subtle:
+    var(--blue-50);
+
+  --alert-light:
+    var(--blue-100);
+
+  --alert-on-solid:
+    #ffffff;
+}
+
+
+/* ==========================================================================
+   Appearance
+   ========================================================================== */
+
+.alert--solid {
+  border-color:
+    var(--alert-tone);
+
+  background:
+    var(--alert-tone);
+
+  color:
+    var(--alert-on-solid);
+}
+
+
+.alert--soft {
+  border-color:
+    transparent;
+
+  background:
+    var(--alert-subtle);
+
+  color:
+    var(--alert-tone);
+}
+
+
+.alert--outline {
+  border-color:
+    var(--alert-tone);
+
+  background:
+    var(--surface);
+
+  color:
+    var(--alert-tone);
+}
+
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.alert__icon {
+  display: grid;
+  place-items: center;
+
+  flex:
+    0 0 1.75rem;
+
+  width:
+    1.75rem;
+
+  height:
+    1.75rem;
+
+  border-radius:
+    var(--radius-full, 9999px);
+
+  color:
+    inherit;
+
+  font-size:
+    var(--font-size-lg, 1.125rem);
+}
+
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.alert__body {
+  flex: 1;
+
+  min-inline-size: 0;
+}
+
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.alert__title {
+  margin: 0;
+
+  color:
+    inherit;
+
+  font-size:
+    var(--font-size-md, 1rem);
+
+  font-weight:
+    var(--font-weight-semibold, 600);
+
+  line-height:
+    var(--line-height-heading, 1.3);
+}
+
+
+/* ==========================================================================
+   Message
+   ========================================================================== */
+
+.alert__message {
+  margin:
+    var(--space-1, 0.25rem) 0 0;
+
+  color:
+    inherit;
+
+  font-size:
+    var(--font-size-sm, 0.875rem);
+
+  line-height:
+    var(--line-height-relaxed, 1.6);
+}
+
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3, 0.75rem);
+}
+
+
+/* ==========================================================================
+   Close
+   ========================================================================== */
+
+.alert__close {
+  display: grid;
+  place-items: center;
+
+  flex-shrink: 0;
+
+  width:
+    2.25rem;
+
+  height:
+    2.25rem;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius:
+    var(--radius-md, 0.5rem);
+
+  background:
+    transparent;
+
+  color:
+    inherit;
+
+  cursor:
+    pointer;
+
+  opacity:
+    0.7;
+
+  transition:
+    opacity var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+
+.alert__close:hover {
+  opacity: 1;
+
+  background:
+    color-mix(in srgb,
+      currentColor 10%,
+      transparent);
+}
+
+
+.alert__close:focus-visible {
+  outline:
+    2px solid currentColor;
+
+  outline-offset:
+    2px;
+}
+
+
+/* ==========================================================================
+   Toast enter animation
+   ========================================================================== */
+
+.alert--toast-right {
+  animation:
+    alert-enter-right 220ms var(--ease-enter, ease-out) both;
+}
+
+
+.alert--toast-left {
+  animation:
+    alert-enter-left 220ms var(--ease-enter, ease-out) both;
+}
+
+
+.alert--toast-center {
+  animation:
+    alert-enter-top 220ms var(--ease-enter, ease-out) both;
+}
+
+
+/* ==========================================================================
+   Toast exit animation
+   ========================================================================== */
+
+.alert--toast-right.alert--closing {
+  pointer-events: none;
+
+  animation:
+    alert-exit-right 180ms var(--ease-exit, ease-in) both;
+}
+
+
+.alert--toast-left.alert--closing {
+  pointer-events: none;
+
+  animation:
+    alert-exit-left 180ms var(--ease-exit, ease-in) both;
+}
+
+
+.alert--toast-center.alert--closing {
+  pointer-events: none;
+
+  animation:
+    alert-exit-top 180ms var(--ease-exit, ease-in) both;
+}
+
+
+/* ==========================================================================
+   Centered popup
+   ========================================================================== */
+
+.alert--centered {
+  --popup-tone: var(--alert-tone);
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem clamp(1.5rem, 5vw, 2.5rem);
+  border-color: #e4e7ec;
+  background: #ffffff;
+  color: #101828;
+  box-shadow: var(--shadow-xl, 0 20px 35px rgb(0 0 0 / 18%));
+  text-align: center;
+  color-scheme: light;
+  transform-origin: center;
+  animation:
+    alert-dialog-enter 220ms var(--ease-enter, ease-out) both;
+}
+
+
+.alert--centered.alert--closing {
+  pointer-events:
+    none;
+
+  animation:
+    alert-dialog-exit 180ms var(--ease-exit, ease-in) both;
+}
+
+
+/* ==========================================================================
+   Centered icon
+   ========================================================================== */
+
+.alert--centered .alert__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full, 9999px);
+  background: color-mix(in srgb, var(--popup-tone) 12%, #ffffff);
+  color: var(--popup-tone);
+  font-size: 1.5rem;
+}
+
+
+/* ==========================================================================
+   Centered body
+   ========================================================================== */
+
+.alert--centered .alert__body {
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   Centered title
+   ========================================================================== */
+
+.alert--centered .alert__title {
+  color:
+    #101828;
+
+  font-size:
+    var(--font-size-xl, 1.25rem);
+
+  font-weight:
+    var(--font-weight-semibold, 600);
+
+  line-height:
+    1.3;
+}
+
+
+/* ==========================================================================
+   Centered message
+   ========================================================================== */
+
+.alert--centered .alert__message {
+  max-inline-size: 42ch;
+  margin: 0;
+  color: #475467;
+  font-size: var(--font-size-sm, 0.875rem);
+  line-height: 1.6;
+}
+
+
+/* ==========================================================================
+   Centered actions
+   ========================================================================== */
+.alert--centered .alert__actions {
+  justify-content: center;
+  margin-block-start: .5rem;
+}
+
+
+/* ==========================================================================
+   Centered close
+   ========================================================================== */
+.alert--centered .alert__close {
+  position: absolute;
+  top: var(--space-3, 0.75rem);
+  right: var(--space-3, 0.75rem);
+  color: #475467;
+}
+
+
+/* ==========================================================================
+   Dark mode toast colors
+   ========================================================================== */
+
+[data-theme="dark"] .alert--success:not(.alert--centered) {
+  --alert-tone:
+    var(--green-300);
+
+  --alert-subtle:
+    color-mix(in srgb,
+      var(--green-500) 15%,
+      var(--surface));
+}
+
+
+[data-theme="dark"] .alert--warning:not(.alert--centered) {
+  --alert-tone:
+    var(--yellow-300);
+
+  --alert-subtle:
+    color-mix(in srgb,
+      var(--yellow-500) 15%,
+      var(--surface));
+}
+
+
+[data-theme="dark"] .alert--danger:not(.alert--centered) {
+  --alert-tone: var(--red-300);
+  --alert-subtle: color-mix(in srgb, var(--red-500) 15%, var(--surface));
+}
+
+
+[data-theme="dark"] .alert--info:not(.alert--centered) {
+  --alert-tone: var(--blue-300);
+  --alert-subtle: color-mix(in srgb, var(--blue-500) 15%, var(--surface));
+}
+
+
+/* ==========================================================================
+   Keyframes - right
+   ========================================================================== */
+
+@keyframes alert-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+@keyframes alert-exit-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+}
+
+
+/* ==========================================================================
+   Keyframes - left
+   ========================================================================== */
+
+@keyframes alert-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+@keyframes alert-exit-left {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+}
+
+
+/* ==========================================================================
+   Keyframes - top
+   ========================================================================== */
+
+@keyframes alert-enter-top {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes alert-exit-top {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+}
+
+
+/* ==========================================================================
+   Dialog animation
+   ========================================================================== */
+
+@keyframes alert-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+@keyframes alert-dialog-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(0.25rem) scale(0.96);
+  }
+}
+
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .alert {
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,79 @@
+<!-- ========================================================================
+     Toast stacks
+     ======================================================================== -->
+
+@for (
+stack of toasts();
+track stack.position
+) {
+<div [class]="
+      'alert-stack alert-stack--' +
+      stack.position
+    " aria-live="polite" aria-relevant="additions">
+
+  @for (
+  item of stack.items;
+  track item.id
+  ) {
+  <div class="alert-stack__item" (pointerenter)="
+          service.pause(item.id)
+        " (pointerleave)="
+          resumePointer(
+            $event,
+            item.id
+          )
+        " (focusin)="
+          service.pause(item.id)
+        " (focusout)="
+          resume(
+            $event,
+            item.id
+          )
+        ">
+    <app-alert [alert]="item" (dismiss)="
+            service.dismiss(item.id)
+          " (action)="
+            service.runAction(item.id)
+          " />
+  </div>
+  }
+
+</div>
+}
+
+
+<!-- ========================================================================
+     Popup / confirmation dialog
+     ======================================================================== -->
+
+@if (
+modal();
+as item
+) {
+<dialog #dialog class="alert-dialog" [class.alert-dialog--closing]="
+      item.closing
+    " [attr.role]="
+      item.mode === 'confirmation'
+        ? 'alertdialog'
+        : 'dialog'
+    " [attr.aria-label]="
+      item.title ||
+      (
+        item.mode === 'confirmation'
+          ? 'Confirm action'
+          : 'Notification'
+      )
+    " [attr.aria-describedby]="
+      'alert-message-' + item.id
+    " (cancel)="cancel($event)">
+  <app-alert [alert]="item" (dismiss)="
+        closeModal()
+      " (confirm)="
+        closeModal(true)
+      " (cancel)="
+        closeModal()
+      " (action)="
+        runModalAction(item.id)
+      " />
+</dialog>
+}

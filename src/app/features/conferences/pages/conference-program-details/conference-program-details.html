@@ -1,0 +1,48 @@
+<main class="conference-program-page">
+  @if (loading()) {
+    <section class="detail-state" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><h1>Loading program…</h1><p>Retrieving what happened during this conference program.</p></section>
+  } @else if (loadError()) {
+    <section class="detail-state" role="alert" aria-labelledby="conference-program-error-title">
+      <span class="state-icon" aria-hidden="true"><i class="fa-solid" [class.fa-link-slash]="errorKind() === 'not-found'" [class.fa-cloud-arrow-down]="errorKind() === 'unavailable'"></i></span>
+      <p class="eyebrow">{{ errorKind() === 'not-found' ? 'Program unavailable' : 'A temporary pause' }}</p>
+      @if (errorKind() === 'not-found') {
+        <h1 id="conference-program-error-title">That conference program is no longer available.</h1>
+        <p>This program may have been unpublished or may no longer belong to this conference.</p>
+      } @else {
+        <h1 id="conference-program-error-title">We could not load this program.</h1>
+        <p>The conference program is temporarily unavailable. Please try again or return to the conference archive.</p>
+      }
+      <div class="actions"><button type="button" (click)="retry()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Try again</button><a routerLink="/conferences">All conferences <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+    </section>
+  } @else if (details(); as item) {
+    <header class="program-hero">
+      <div class="container">
+        <a [routerLink]="['/conferences', item.conference.id]"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ item.conference.title }}</a>
+        <p class="eyebrow">{{ item.conference.year }} conference program</p>
+        <h1>{{ item.conferenceProgram.program.name }}</h1>
+        <p>{{ item.conferenceProgram.conferenceSummary || item.conferenceProgram.program.summary || item.conferenceProgram.program.description }}</p>
+      </div>
+    </header>
+
+    <section class="program-overview">
+      <div class="container overview-grid">
+        <div><p class="eyebrow">About this program</p><h2>Part of {{ item.conference.title }}</h2><p>{{ item.conferenceProgram.conferenceSummary || item.conferenceProgram.program.description || 'More information about this program will be added soon.' }}</p></div>
+        <dl><div><dt>Conference</dt><dd>{{ item.conference.title }}</dd></div><div><dt>Theme</dt><dd>{{ item.conference.theme }}</dd></div><div><dt>Dates</dt><dd>{{ item.conference.startDate ? (item.conference.startDate | date: 'mediumDate') : 'To be announced' }} – {{ item.conference.endDate ? (item.conference.endDate | date: 'mediumDate') : 'To be announced' }}</dd></div><div><dt>Events</dt><dd>{{ item.conferenceProgram.events?.length || 0 }}</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="program-timeline" aria-labelledby="events-title">
+      <div class="container">
+        <p class="eyebrow">What happened</p>
+        <h2 id="events-title">Events and sessions</h2>
+        @if (item.conferenceProgram.events?.length) {
+          <div class="event-list">
+            @for (event of item.conferenceProgram.events ?? []; track event.id) {
+              <article class="event-card"><div class="event-summary"><strong>{{ event.title }}</strong><span>{{ schedule(event.startAt, event.timezone) }} · {{ event.sessions?.length || 0 }} sessions</span></div><div class="event-content"><div class="meta"><span>{{ event.eventType }}</span><span>{{ readableStatus(event.eventStatus) }}</span></div>@if (event.summary) { <p>{{ event.summary }}</p> } @if (event.description) { <p>{{ event.description }}</p> }<dl class="event-facts"><div><dt>Starts</dt><dd>{{ schedule(event.startAt, event.timezone) }}</dd></div><div><dt>Ends</dt><dd>{{ schedule(event.endAt, event.timezone) }}</dd></div><div><dt>Format</dt><dd>{{ readableStatus(event.locationMode) }}</dd></div><div><dt>Registration</dt><dd>{{ event.registrationRequired ? 'Required' : 'Not required' }}</dd></div><div><dt>Venue</dt><dd>{{ event.defaultVenue?.name || 'Not assigned' }}</dd></div></dl>@if (event.sessions?.length) {<div class="sessions"><h3>Sessions · {{ event.sessions?.length }}</h3>@for (session of event.sessions ?? []; track session.id) {<details><summary><strong>{{ session.title }}</strong><span>{{ schedule(session.startAt, event.timezone) }}</span></summary><p>{{ session.description || 'Session details will be shared soon.' }}</p><small>{{ schedule(session.startAt, event.timezone) }} – {{ schedule(session.endAt, event.timezone) }} · {{ session.venue?.name || event.defaultVenue?.name || 'Venue to be announced' }}</small></details>}</div>}</div></article>
+            }
+          </div>
+        } @else { <p class="empty">No events have been published for this program yet.</p> }
+      </div>
+    </section>
+  }
+</main>

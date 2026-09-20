@@ -1,0 +1,31 @@
+<button class="button" [class.button--variant-light]="variant === 'light'" [class.button--variant-dark]="variant === 'dark'" [class.button--variant-secondary]="variant === 'secondary'" [class.button--variant-outline]="variant === 'outline'" [class.button--small]="size === 'small'" [class.button--medium]="size === 'medium'"
+  [class.button--large]="size === 'large'" [class.button--solid]="appearance === 'solid' && variant !== 'outline'"
+  [class.button--soft]="appearance === 'soft'" [class.button--outline]="appearance === 'outline'"
+  [class.button--ghost]="appearance === 'ghost'" [class.button--link]="appearance === 'link'" [class.button--outline]="appearance === 'outline' || variant === 'outline'"
+  [class.button--primary]="color === 'primary'" [class.button--neutral]="color === 'neutral'"
+  [class.button--blue]="color === 'blue'" [class.button--green]="color === 'green'"
+  [class.button--red]="color === 'red'" [class.button--yellow]="color === 'yellow'"
+  [class.button--orange]="color === 'orange'" [class.button--purple]="color === 'purple'"
+  [class.button--teal]="color === 'teal'" [class.button--success]="color === 'success'"
+  [class.button--warning]="color === 'warning'" [class.button--danger]="color === 'danger'"
+  [class.button--info]="color === 'info'" [class.button--full-width]="fullWidth" [class.button--icon-only]="iconOnly"
+  [class.button--loading]="loading" [type]="type" [disabled]="interactionDisabled" [attr.name]="name ?? null"
+  [attr.value]="value ?? null" [attr.aria-label]="ariaLabel ?? null" [attr.aria-disabled]="
+    interactionDisabled
+      ? 'true'
+      : null
+  " [attr.aria-busy]="
+    loading
+      ? 'true'
+      : null
+  " (click)="handleClick($event)">
+  @if (loading) {
+  <app-loader size="small" [label]="loadingLabel" />
+  }
+
+  <span class="button__content">
+    @if (prefixIcon) { <i [class]="prefixIcon" aria-hidden="true"></i> }
+    <ng-content />
+    @if (suffixIcon) { <i [class]="suffixIcon" aria-hidden="true"></i> }
+  </span>
+</button>

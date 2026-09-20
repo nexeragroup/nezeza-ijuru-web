@@ -1,0 +1,12 @@
+.git
+.github
+.angular
+dist
+node_modules
+coverage
+*.log
+.env
+.env.*
+!.env.*.example
+runtime.env
+.DS_Store

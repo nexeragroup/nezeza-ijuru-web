@@ -1,0 +1,109 @@
+<header class="site-header">
+  <div class="partner-strip">
+    <div class="container partner-strip-inner">
+      <div class="partner-logos">
+        <img
+          [src]="theme.dark() ? '/brand/logos/awm-light.png' : '/brand/logos/awm-dark.png'"
+          alt="Authentic Word Ministries"
+          width="100"
+          height="50"
+        />
+
+        <img
+          [src]="theme.dark() ? '/brand/logos/ztcc-light.png' : '/brand/logos/ztcc-dark.png'"
+          alt="Zion Temple Celebration Center"
+          width="100"
+          height="50"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="site-header-inner">
+      <a routerLink="/" aria-label="Nezeza Ijuru home" (click)="closeNavigation()">
+        <span class="brand-logo">
+          <img
+            [src]="
+              theme.dark()
+                ? '/brand/logos/logo-primary-light.png'
+                : '/brand/logos/logo-primary-dark.png'
+            "
+            alt="Nezeza Ijuru"
+            width="230"
+            height="48"
+          />
+        </span>
+      </a>
+
+      <button
+        class="site-menu-toggle"
+        type="button"
+        [attr.aria-expanded]="isOpen"
+        aria-controls="primary-navigation"
+        [attr.aria-label]="isOpen ? 'Close navigation' : 'Open navigation'"
+        (click)="toggleNavigation()"
+      >
+        <i
+          class="fa-solid"
+          [class.fa-xmark]="isOpen"
+          [class.fa-bars]="!isOpen"
+          aria-hidden="true"
+        ></i>
+      </button>
+
+      <nav
+        id="primary-navigation"
+        class="site-nav"
+        [class.site-nav-open]="isOpen"
+        aria-label="Primary navigation"
+      >
+        <ul>
+          @for (item of navigation; track item.href) {
+            <li>
+              <a
+                class="site-nav-link"
+                [routerLink]="item.href"
+                routerLinkActive="site-nav-link-active"
+                [routerLinkActiveOptions]="{ exact: item.href === '/' }"
+                ariaCurrentWhenActive="page"
+                (click)="closeNavigation()"
+              >
+                {{ item.label }}
+              </a>
+            </li>
+          }
+
+          <li class="site-nav-theme">
+            <button
+              type="button"
+              class="site-theme-toggle"
+              [attr.aria-label]="theme.dark() ? 'Use light theme' : 'Use dark theme'"
+              [attr.title]="theme.dark() ? 'Use light theme' : 'Use dark theme'"
+              (click)="theme.toggleMode()"
+            >
+              <i
+                class="fa-solid"
+                [class.fa-sun]="theme.dark()"
+                [class.fa-moon]="!theme.dark()"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </li>
+
+          <li class="site-nav-cta">
+            <a
+              class="site-nav-link"
+              routerLink="/give"
+              routerLinkActive="site-nav-link-active"
+              ariaCurrentWhenActive="page"
+              (click)="closeNavigation()"
+            >
+              GIVE
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

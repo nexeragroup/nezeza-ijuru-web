@@ -1,0 +1,504 @@
+:host {
+  display: inline-block;
+}
+
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+.button {
+  --button-base: var(--brand-navy);
+  --button-hover: var(--brand-navy);
+  --button-active: var(--brand-navy);
+  --button-subtle: color-mix(in srgb, var(--brand-navy) 10%, transparent);
+  --button-light: color-mix(in srgb, var(--brand-navy) 16%, transparent);
+  --button-on-color: var(--brand-cream);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap:
+    var(--space-2);
+
+  position: relative;
+
+  border:
+    var(--border-width) solid transparent;
+
+  border-radius:
+    var(--radius-md);
+
+  font-family:
+    var(--font-sans);
+
+  font-weight:
+    var(--font-medium);
+
+  line-height:
+    var(--leading-tight);
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  user-select: none;
+
+  -webkit-user-select: none;
+
+  transition:
+    background-color var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast),
+    box-shadow var(--duration-fast),
+    opacity var(--duration-fast);
+}
+
+.button__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap:
+    var(--space-2);
+}
+
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.button--small {
+  min-height: 1rem;
+
+  padding:
+    0.375rem var(--space-3);
+
+  border-radius:
+    var(--radius-sm);
+
+  font-size:
+    var(--text-sm);
+}
+
+.button--medium {
+  min-height: 1rem;
+
+  padding:
+    var(--space-1) var(--space-3);
+
+  font-size:
+    var(--text-base);
+}
+
+.button--large {
+  min-height: 1rem;
+
+  padding:
+    var(--space-2) var(--space-5);
+
+  border-radius:
+    var(--radius-lg);
+
+  font-size:
+    var(--text-lg);
+}
+
+
+/* ==========================================================================
+   Colors
+   ========================================================================== */
+
+/*
+ * Primary follows the currently selected app color theme.
+ *
+ * Blue theme:
+ * primary -> blue
+ *
+ * Green theme:
+ * primary -> green
+ */
+
+.button--primary {
+  --button-base: var(--brand-navy);
+  --button-hover: var(--brand-navy);
+  --button-active: var(--brand-navy);
+  --button-subtle: color-mix(in srgb, var(--brand-navy) 10%, transparent);
+  --button-light: color-mix(in srgb, var(--brand-navy) 16%, transparent);
+  --button-on-color: var(--brand-cream);
+}
+
+.button--variant-light { --button-base: var(--brand-cream); --button-hover: var(--brand-gold); --button-active: var(--brand-gold); --button-subtle: rgb(249 242 214 / 12%); --button-light: rgb(249 242 214 / 20%); --button-on-color: var(--brand-navy); }
+.button--variant-dark { --button-base: var(--brand-navy); --button-hover: var(--brand-green); --button-active: var(--brand-green); --button-subtle: rgb(47 72 88 / 10%); --button-light: rgb(47 72 88 / 16%); --button-on-color: var(--brand-cream); }
+.button--variant-secondary { --button-base: var(--brand-green); --button-hover: var(--brand-navy); --button-active: var(--brand-navy); --button-subtle: rgb(75 129 121 / 12%); --button-light: rgb(75 129 121 / 20%); --button-on-color: var(--brand-cream); }
+.button--variant-outline { --button-base: var(--brand-cream); --button-hover: var(--brand-green); --button-active: var(--brand-green); --button-subtle: rgb(249 242 214 / 12%); --button-light: rgb(249 242 214 / 20%); --button-on-color: var(--brand-cream); }
+
+
+/* ==========================================================================
+   Neutral
+   ========================================================================== */
+
+.button--neutral {
+  --button-base: var(--slate-700);
+  --button-hover: var(--slate-800);
+  --button-active: var(--slate-900);
+
+  --button-subtle: var(--slate-100);
+  --button-light: var(--slate-200);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Blue
+   ========================================================================== */
+
+.button--blue,
+.button--info {
+  --button-base: var(--blue-600);
+  --button-hover: var(--blue-700);
+  --button-active: var(--blue-800);
+
+  --button-subtle: var(--blue-50);
+  --button-light: var(--blue-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Green
+   ========================================================================== */
+
+.button--green,
+.button--success {
+  --button-base: var(--green-600);
+  --button-hover: var(--green-700);
+  --button-active: var(--green-800);
+
+  --button-subtle: var(--green-50);
+  --button-light: var(--green-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Red
+   ========================================================================== */
+
+.button--red,
+.button--danger {
+  --button-base: var(--red-600);
+  --button-hover: var(--red-700);
+  --button-active: var(--red-800);
+
+  --button-subtle: var(--red-50);
+  --button-light: var(--red-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Yellow
+   ========================================================================== */
+
+.button--yellow,
+.button--warning {
+  --button-base: var(--yellow-600);
+  --button-hover: var(--yellow-700);
+  --button-active: var(--yellow-800);
+
+  --button-subtle: var(--yellow-50);
+  --button-light: var(--yellow-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Orange
+   ========================================================================== */
+
+.button--orange {
+  --button-base: var(--orange-600);
+  --button-hover: var(--orange-700);
+  --button-active: var(--orange-800);
+
+  --button-subtle: var(--orange-50);
+  --button-light: var(--orange-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Purple
+   ========================================================================== */
+
+.button--purple {
+  --button-base: var(--purple-600);
+  --button-hover: var(--purple-700);
+  --button-active: var(--purple-800);
+
+  --button-subtle: var(--purple-50);
+  --button-light: var(--purple-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Teal
+   ========================================================================== */
+
+.button--teal {
+  --button-base: var(--teal-600);
+  --button-hover: var(--teal-700);
+  --button-active: var(--teal-800);
+
+  --button-subtle: var(--teal-50);
+  --button-light: var(--teal-100);
+
+  --button-on-color: #ffffff;
+}
+
+
+/* ==========================================================================
+   Appearance: Solid
+   ========================================================================== */
+
+.button--solid {
+  border-color:
+    var(--button-base);
+
+  background:
+    var(--button-base);
+
+  color:
+    var(--button-on-color);
+}
+
+.button--solid:hover:not(:disabled) {
+  border-color:
+    var(--button-hover);
+
+  background:
+    var(--button-hover);
+}
+
+.button--solid:active:not(:disabled) {
+  border-color:
+    var(--button-active);
+
+  background:
+    var(--button-active);
+}
+
+
+/* ==========================================================================
+   Appearance: Soft
+   ========================================================================== */
+
+.button--soft {
+  border-color:
+    transparent;
+
+  background:
+    var(--button-subtle);
+
+  color:
+    var(--button-base);
+}
+
+.button--soft:hover:not(:disabled) {
+  background:
+    var(--button-light);
+}
+
+.button--soft:active:not(:disabled) {
+  background:
+    color-mix(in srgb,
+      var(--button-light) 80%,
+      var(--button-base));
+}
+
+
+/* ==========================================================================
+   Appearance: Outline
+   ========================================================================== */
+
+.button--outline {
+  border-color:
+    var(--button-base);
+
+  background:
+    transparent;
+
+  color:
+    var(--button-base);
+}
+
+.button--outline:hover:not(:disabled) {
+  background:
+    var(--button-subtle);
+}
+
+.button--outline:active:not(:disabled) {
+  background:
+    var(--button-light);
+}
+
+
+/* ==========================================================================
+   Appearance: Ghost
+   ========================================================================== */
+
+.button--ghost {
+  border-color:
+    transparent;
+
+  background:
+    transparent;
+
+  color:
+    var(--button-base);
+}
+
+.button--ghost:hover:not(:disabled) {
+  background:
+    var(--button-subtle);
+}
+
+.button--ghost:active:not(:disabled) {
+  background:
+    var(--button-light);
+}
+
+
+/* ==========================================================================
+   Appearance: Link
+   ========================================================================== */
+
+.button--link {
+  min-height: unset;
+
+  padding: 0;
+
+  border-color:
+    transparent;
+
+  background:
+    transparent;
+
+  color:
+    var(--button-base);
+
+  border-radius: 0;
+}
+
+.button--link:hover:not(:disabled) {
+  color:
+    var(--button-hover);
+
+  text-decoration:
+    underline;
+
+  text-underline-offset:
+    0.2em;
+}
+
+.button--link:active:not(:disabled) {
+  color:
+    var(--button-active);
+}
+
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
+
+.button:focus {
+  outline: none;
+}
+
+.button:focus-visible {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb,
+      var(--button-base) 30%,
+      transparent);
+}
+
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.5;
+
+  box-shadow: none;
+}
+
+
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+.button--loading {
+  cursor: wait;
+}
+
+
+/* ==========================================================================
+   Full width
+   ========================================================================== */
+
+.button--full-width {
+  width: 100%;
+}
+
+:host:has(.button--full-width) {
+  display: block;
+
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   Icon only
+   ========================================================================== */
+
+.button--icon-only {
+  padding-inline: 0;
+
+  aspect-ratio: 1;
+}
+
+.button--icon-only.button--small {
+  width: 2rem;
+}
+
+.button--icon-only.button--medium {
+  width: 2.75rem;
+}
+
+.button--icon-only.button--large {
+  width: 3.25rem;
+}
+
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

@@ -1,0 +1,64 @@
+<main class="programs-page">
+  <header class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Our programs</p>
+      <h1>One Gospel.<br />Every part of life.</h1>
+      <p>Connected expressions of one mission: help people meet Jesus and grow into lives that make His love visible.</p>
+    </div>
+  </header>
+
+  <section class="program-list" [attr.aria-busy]="loading()" aria-labelledby="program-list-title">
+    <div class="container">
+      <h2 id="program-list-title" class="sr-only">Nezeza Ijuru programs</h2>
+      @if (loading()) {
+        <div class="program-state program-state--loading" role="status" aria-live="polite">
+          <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+          <h2>Loading programs…</h2>
+          <p>We are retrieving the latest published ways to take part.</p>
+        </div>
+      } @else if (loadError()) {
+        <div class="program-state program-state--error" role="alert" aria-labelledby="programs-error-title">
+          <span class="state-icon" aria-hidden="true"><i class="fa-solid fa-cloud-arrow-down"></i></span>
+          <p class="eyebrow">A temporary pause</p>
+          <h2 id="programs-error-title">Programs are temporarily unavailable.</h2>
+          <p>We could not reach the program library. Nothing has been removed—please try again in a moment.</p>
+          <div class="state-actions">
+            <button type="button" (click)="loadPrograms()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Try again</button>
+            <a routerLink="/contact">Contact the team</a>
+          </div>
+        </div>
+      } @else if (!programs().length) {
+        <div class="program-state program-state--empty">
+          <span class="state-icon" aria-hidden="true"><i class="fa-solid fa-compass"></i></span>
+          <p class="eyebrow">More to come</p>
+          <h2>No published programs yet.</h2>
+          <p>The team is preparing the next set of program information. Please check back soon.</p>
+          <a routerLink="/contact">Stay connected <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+      } @else {
+      @for (program of programs(); track program.id; let index = $index) {
+        <a class="program" [routerLink]="['/programs', program.slug]">
+          <div class="image">
+            <img [src]="image(program)" [alt]="program.name" loading="lazy" decoding="async" />
+            <span aria-hidden="true">{{ (index + 1).toString().padStart(2, '0') }}</span>
+          </div>
+          <div class="copy">
+            <p class="eyebrow">Program {{ (index + 1).toString().padStart(2, '0') }}</p>
+            <h2>{{ program.name }}</h2>
+            <p>{{ program.summary || program.description || 'Discover this Nezeza Ijuru program.' }}</p>
+            <strong>Discover the program <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+          </div>
+        </a>
+      }
+      }
+    </div>
+  </section>
+
+  <section class="program-cta">
+    <div class="container">
+      <p class="eyebrow">Take part</p>
+      <h2>Find the work your heart is ready to carry.</h2>
+      <a routerLink="/contact">Become a volunteer <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </section>
+</main>
