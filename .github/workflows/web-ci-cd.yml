@@ -8,12 +8,10 @@ on:
   pull_request:
     branches:
       - main
-      - production
 
   push:
     branches:
       - main
-      - production
 
   workflow_dispatch:
 
@@ -61,7 +59,6 @@ jobs:
   # Runs:
   #   - Pull requests
   #   - main pushes
-  #   - production pushes
   #   - manual workflow runs
   #
   # Nothing can build until this job succeeds.
@@ -168,10 +165,7 @@ jobs:
   #   Build Docker image but DO NOT push it.
   #
   # main:
-  #   Build and publish image but DO NOT deploy production.
-  #
-  # production:
-  #   Build, publish and allow production deployment.
+  #   Build, publish and deploy production.
   #
   build:
     name: Build production image
@@ -265,7 +259,7 @@ jobs:
       # PR:
       #   push=false
       #
-      # main / production:
+      # main:
       #   push=true
       # -----------------------------------------------------------------------
 
@@ -293,15 +287,14 @@ jobs:
   #
   # Production deployment occurs ONLY when:
   #
-  #   branch = production
+  #   branch = main
   #
   # Therefore:
   #
-  # PR -> production   = NO deployment
-  # push -> main       = NO deployment
-  # push -> production = deployment
+  # PR -> main = NO deployment
+  # push -> main = deployment
   #
-  # Manual workflow must also be launched from production branch.
+  # Manual workflow must be launched from the main branch.
   #
   deploy:
     name: Deploy production web
@@ -311,7 +304,7 @@ jobs:
 
     if: >
       github.event_name != 'pull_request' &&
-      github.ref == 'refs/heads/production'
+      github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
     timeout-minutes: 20
