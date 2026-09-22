@@ -44,10 +44,17 @@ jobs:
 
       - name: Generate build environments
         env:
-          API_PROXY_TARGET: https://api.nezezaijuru.org
-          SITE_URL: https://nezezaijuru.org
-          ROBOTS_INDEXABLE: true
-        run: node scripts/generate-environment.mjs prod
+          STAGING_API_PROXY_TARGET: https://staging-api.nezezaijuru.org
+          PRODUCTION_API_PROXY_TARGET: https://api.nezezaijuru.org
+        run: |
+          API_PROXY_TARGET="$STAGING_API_PROXY_TARGET" \
+            SITE_URL=https://staging.nezezaijuru.org \
+            ROBOTS_INDEXABLE=false \
+            node scripts/generate-environment.mjs staging
+          API_PROXY_TARGET="$PRODUCTION_API_PROXY_TARGET" \
+            SITE_URL=https://nezezaijuru.org \
+            ROBOTS_INDEXABLE=true \
+            node scripts/generate-environment.mjs prod
 
       - name: Type check
         run: pnpm exec tsc -p tsconfig.app.json --noEmit
