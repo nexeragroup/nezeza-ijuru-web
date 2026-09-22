@@ -35,7 +35,7 @@ RUN API_PROXY_TARGET="${STAGING_API_PROXY_TARGET:-${API_PROXY_TARGET}}" \
   && pnpm exec ng build --configuration="${CONFIGURATION}" --no-progress \
   && if [ "${CONFIGURATION}" = "staging" ]; then \
        mkdir -p /app/runtime/static \
-       && cp -a dist/web/staging/. /app/runtime/static/; \
+       && cp -a dist/web/staging/browser/. /app/runtime/static/; \
      else \
        mkdir -p /app/runtime/ssr \
        && cp -a dist/web/prod/ssr/. /app/runtime/ssr/; \
