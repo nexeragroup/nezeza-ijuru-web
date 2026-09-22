@@ -109,6 +109,12 @@ jobs:
             API_PROXY_TARGET=${{ vars.API_PROXY_TARGET }}
             SITE_URL=https://staging.nezezaijuru.org
             ROBOTS_INDEXABLE=false
+            STAGING_API_PROXY_TARGET=https://staging-api.nezezaijuru.org
+            STAGING_SITE_URL=https://staging.nezezaijuru.org
+            STAGING_ROBOTS_INDEXABLE=false
+            PRODUCTION_API_PROXY_TARGET=https://api.nezezaijuru.org
+            PRODUCTION_SITE_URL=https://nezezaijuru.org
+            PRODUCTION_ROBOTS_INDEXABLE=true
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}

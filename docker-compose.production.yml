@@ -9,6 +9,12 @@ services:
         API_PROXY_TARGET: ${API_PROXY_TARGET:?API_PROXY_TARGET is required}
         SITE_URL: ${SITE_URL:?SITE_URL is required}
         ROBOTS_INDEXABLE: ${ROBOTS_INDEXABLE:-true}
+        STAGING_API_PROXY_TARGET: https://staging-api.nezezaijuru.org
+        STAGING_SITE_URL: https://staging.nezezaijuru.org
+        STAGING_ROBOTS_INDEXABLE: false
+        PRODUCTION_API_PROXY_TARGET: https://api.nezezaijuru.org
+        PRODUCTION_SITE_URL: https://nezezaijuru.org
+        PRODUCTION_ROBOTS_INDEXABLE: true
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
