@@ -1,122 +1,82 @@
 # Nezeza Ijuru web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.8.
+Angular 22 application with production SSR, staging CSR, environment-specific API configuration, and the same Docker/proxy layout used by the Control app.
 
 ## Development
 
-Use Node.js 24.21.0 (`.nvmrc` is included) before installing dependencies.
+Use Node.js 24.21.0 from `.nvmrc`, then install dependencies:
 
-To start a local development server, run:
+```bash
+pnpm install --frozen-lockfile
+```
+
+Start the Angular development server:
 
 ```bash
 pnpm start:dev
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Open `http://localhost:4200/`.
 
-## Code scaffolding
+Development API requests under `/api` use the local Angular proxy and default to `http://localhost:3300`. Override the origin in `.env.dev.local`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+For staging and production local runs, the matching `.env.staging` and `.env.prod` files generate the browser environment from `API_PROXY_TARGET`:
 
 ```bash
-ng generate --help
+pnpm start:staging
+pnpm start:prod
 ```
 
-For SSR development, set `SSR_API_BASE_URL` when the Node renderer must call an API origin that is not available at the local fallback `http://localhost:3300/api/v1`, then run:
+Staging uses CSR. Production uses SSR. For local development SSR, set `SSR_API_BASE_URL` to the API origin when it is not available at the app origin:
 
 ```bash
 SSR_API_BASE_URL=http://localhost:3300/api/v1 pnpm start:dev:ssr
 ```
 
-## Production SSR
-
-The production build uses request-time Angular SSR so conference, program, and media data can be rendered into the HTML returned to crawlers. Build and run the generated Node server with an absolute API URL:
+## Environment builds
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm build:prod:ssr
-SSR_API_BASE_URL=https://api.nezezaijuru.org/api/v1 \
-  SITE_URL=https://nezezaijuru.org \
-  ROBOTS_INDEXABLE=true \
-  PORT=4000 \
-  pnpm serve:prod:ssr
+pnpm build:dev
+pnpm build:staging
+pnpm build:prod
 ```
 
-`SSR_API_BASE_URL` must be the real NestJS origin. If the API is reverse-proxied under the same public domain, use `https://nezezaijuru.org/api/v1` instead. The browser uses the same-origin `/api/v1` path, so the edge proxy must route that path to NestJS and all other application paths to the SSR Node process.
-
-Recommended edge routing:
-
-- `https://nezezaijuru.org/api/*` → NestJS API
-- `https://nezezaijuru.org/*` → SSR Node server on port `4000`
-- `https://www.nezezaijuru.org/*` → redirect to `https://nezezaijuru.org/*`
-
-Set DNS A/AAAA records and TLS certificates for both `nezezaijuru.org` and `www.nezezaijuru.org` at the hosting provider. The Angular app cannot create DNS or certificates itself.
+Staging uses `https://staging.nezezaijuru.org`; production uses `https://nezezaijuru.org`.
 
 ## Docker deployment
 
-The Docker image builds the SSR server for one Angular configuration and listens on port `4200` inside the container. Docker publishes it on host port `10301`, so the reverse proxy should forward each web hostname to `127.0.0.1:10301`.
-
-Build locally when needed:
+The Docker image builds staging as a static CSR site and production as an SSR site. Both listen on port `4200` inside the container.
 
 ```bash
-docker build -t nezeza-ijuru-web:production .
+pnpm docker:staging
+pnpm docker:production
+pnpm docker:deploy
 ```
 
-The compose files expect a server-side `runtime.env` file and an immutable image reference:
+The container publishes staging on `127.0.0.1:10302` and production on `127.0.0.1:10301`. The host edge server can route the final web domains to those loopback ports.
+
+The branch-aware deploy script accepts only `staging` and `production` branches. It reads `.env.staging` or `.env.prod` and runs the matching Compose file.
+
+## Production SSR
+
+Run the generated SSR server directly when needed:
 
 ```bash
-cp .env.production.example runtime.env
-IMAGE_NAME=nezeza-ijuru-web IMAGE_TAG=production \
-  docker compose --env-file runtime.env -f compose.production.yml up -d
+SSR_API_BASE_URL=https://api.nezezaijuru.org/api/v1 \
+  SITE_URL=https://nezezaijuru.org \
+  ROBOTS_INDEXABLE=true \
+  PORT=4200 \
+  pnpm serve:prod:ssr
 ```
 
-`runtime.env` is never committed. Set `SSR_API_BASE_URL` to the API origin reachable from the server-side renderer; the browser continues to use same-origin `/api/v1` requests.
+`SSR_API_BASE_URL` is required by the production SSR runtime. The browser uses the generated API URL from the selected environment file.
 
-GitHub Actions uses these deployment rules:
-
-- Pull requests to `main` run checks and a non-published image build.
-- Pushes to `main` build, publish, and deploy the `production` image/configuration.
-
-Create a GitHub Environment named `production`. It needs these secrets: `PROD_HOST`, `PROD_USER`, `PROD_SSH_PRIVATE_KEY`, `PROD_SSH_KNOWN_HOSTS`, `PROD_GHCR_USERNAME`, and `PROD_GHCR_TOKEN`.
-
-Set these environment variables: `PROD_SSR_API_BASE_URL`, `PROD_SITE_URL`, and `PROD_ROBOTS_INDEXABLE=true`. `PROD_CLIENT_DEPLOY_PATH` should be `/home/yves/nezeza-ijuru/client`; `PROD_SSH_PORT` should be `22`.
-
-The deployment user must be able to write that directory, run Docker Compose, and pull the private GHCR image. The host must have port `10301` available.
-
-## Building
-
-To build the project run:
+## Checks
 
 ```bash
-pnpm build:prod:ssr
+pnpm exec tsc -p tsconfig.app.json --noEmit
+pnpm exec ngc -p tsconfig.app.json --noEmit
+pnpm test
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Angular CLI documentation is available at https://angular.dev/tools/cli.
