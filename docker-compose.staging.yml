@@ -1,0 +1,26 @@
+services:
+  web:
+    image: ${WEB_IMAGE:-nezeza-web:staging}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CONFIGURATION: staging
+        API_PROXY_TARGET: ${API_PROXY_TARGET:?API_PROXY_TARGET is required}
+        SITE_URL: ${SITE_URL:?SITE_URL is required}
+        ROBOTS_INDEXABLE: ${ROBOTS_INDEXABLE:-false}
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4200
+      SITE_URL: ${SITE_URL:?SITE_URL is required}
+      ROBOTS_INDEXABLE: ${ROBOTS_INDEXABLE:-false}
+    ports:
+      - "127.0.0.1:10302:4200"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true

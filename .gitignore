@@ -38,6 +38,7 @@ runtime.env
 .sass-cache/
 /connect.lock
 /coverage
+/src/environments/generated
 /libpeerconnection.log
 testem.log
 /typings

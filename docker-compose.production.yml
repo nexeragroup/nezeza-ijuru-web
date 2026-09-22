@@ -1,0 +1,27 @@
+services:
+  web:
+    image: ${WEB_IMAGE:-nezeza-web:production}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CONFIGURATION: prod
+        API_PROXY_TARGET: ${API_PROXY_TARGET:?API_PROXY_TARGET is required}
+        SITE_URL: ${SITE_URL:?SITE_URL is required}
+        ROBOTS_INDEXABLE: ${ROBOTS_INDEXABLE:-true}
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4200
+      SSR_API_BASE_URL: ${SSR_API_BASE_URL:?SSR_API_BASE_URL is required}
+      SITE_URL: ${SITE_URL:?SITE_URL is required}
+      ROBOTS_INDEXABLE: ${ROBOTS_INDEXABLE:-true}
+    ports:
+      - "127.0.0.1:10301:4200"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true

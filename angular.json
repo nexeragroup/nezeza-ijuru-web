@@ -36,13 +36,8 @@
               }
             ],
             "styles": ["src/styles.css"],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
             "security": {
               "allowedHosts": []
-            },
-            "ssr": {
-              "entry": "src/server.ts"
             }
           },
           "configurations": {
@@ -51,6 +46,11 @@
                 "base": "dist/web/dev/ssr",
                 "browser": "browser",
                 "server": "server"
+              },
+              "server": "src/main.server.ts",
+              "outputMode": "server",
+              "ssr": {
+                "entry": "src/server.ts"
               },
               "fileReplacements": [
                 {
@@ -69,11 +69,46 @@
                 "allowedHosts": ["localhost", "127.0.0.1"]
               }
             },
+            "staging": {
+              "outputPath": "dist/web/staging",
+              "index": "src/environments/generated/index.staging.html",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ],
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "outputHashing": "all",
+              "security": {
+                "allowedHosts": ["localhost", "127.0.0.1", "staging.nezezaijuru.org"]
+              },
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "3MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "3MB"
+                }
+              ]
+            },
             "prod": {
               "outputPath": {
                 "base": "dist/web/prod/ssr",
                 "browser": "browser",
                 "server": "server"
+              },
+              "index": "src/environments/generated/index.prod.html",
+              "server": "src/main.server.ts",
+              "outputMode": "server",
+              "ssr": {
+                "entry": "src/server.ts"
               },
               "fileReplacements": [
                 {
@@ -90,7 +125,7 @@
               "sourceMap": false,
               "outputHashing": "all",
               "security": {
-                "allowedHosts": ["nezezaijuru.org", "www.nezezaijuru.org"]
+                "allowedHosts": ["nezezaijuru.org"]
               },
               "budgets": [
                 {
@@ -114,6 +149,10 @@
             "dev": {
               "buildTarget": "web:build:dev",
               "proxyConfig": "proxy/proxy.dev.mjs"
+            },
+            "staging": {
+              "buildTarget": "web:build:staging",
+              "proxyConfig": "proxy/proxy.staging.mjs"
             },
             "prod": {
               "buildTarget": "web:build:prod",

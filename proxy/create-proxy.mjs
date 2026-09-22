@@ -1,96 +1,50 @@
-import { readFileSync } from 'node:fs';
-import { parseEnv } from 'node:util';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-export const API_CONTEXT = '^/api(?:/|\\?|$)';
+const API_PATH = '^/api(?:/|\\?|$)';
 
-const PROXY_ENVIRONMENTS = new Set(['dev', 'prod']);
-
-function assertProxyEnvironment(name) {
-  if (!PROXY_ENVIRONMENTS.has(name)) {
-    throw new Error(`Unsupported proxy environment: ${String(name)}`);
-  }
-}
-
-function parseTimeout(value) {
-  if (value == null || value === '') {
-    return 30_000;
-  }
-
-  const timeout = Number(value);
-
-  if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 120_000) {
-    throw new Error('API_PROXY_TIMEOUT_MS must be an integer ' + 'between 1000 and 120000.');
-  }
-
-  return timeout;
-}
-
-function validateAllowedHost(target, settings) {
-  const raw = settings.API_PROXY_ALLOWED_HOSTS;
-
-  if (!raw) {
-    return;
-  }
-
-  const allowed = new Set(
-    raw
-      .split(',')
-      .map((host) => host.trim().toLowerCase())
-      .filter(Boolean),
+export function createProxy(environment) {
+  const localEnvironment = readLocalEnvironment(environment);
+  const target = validateTarget(
+    process.env.API_PROXY_TARGET ||
+      localEnvironment.API_PROXY_TARGET ||
+      (environment === 'dev' ? 'http://localhost:3300' : ''),
+    environment,
   );
-
-  if (!allowed.has(target.hostname.toLowerCase())) {
-    throw new Error(`API proxy target host "${target.hostname}" is not allowed.`);
-  }
-}
-
-function getSafeRequestPath(request) {
-  try {
-    return new URL(request.url ?? '/', 'http://proxy.local').pathname;
-  } catch {
-    return '/';
-  }
-}
-
-export function readProxyEnvironment(name) {
-  assertProxyEnvironment(name);
-
-  const file = new URL(`../.env.${name}.local`, import.meta.url);
-
-  let local = {};
-
-  try {
-    local = parseEnv(readFileSync(file, 'utf8'));
-  } catch (error) {
-    if (!error || typeof error !== 'object' || error.code !== 'ENOENT') {
-      throw error;
-    }
-  }
+  const timeout = readTimeout(process.env.API_PROXY_TIMEOUT_MS || localEnvironment.API_PROXY_TIMEOUT_MS);
 
   return {
-    API_PROXY_TARGET: process.env.API_PROXY_TARGET ?? local.API_PROXY_TARGET,
-
-    API_PROXY_TIMEOUT_MS: process.env.API_PROXY_TIMEOUT_MS ?? local.API_PROXY_TIMEOUT_MS,
-
-    API_PROXY_ALLOWED_HOSTS: process.env.API_PROXY_ALLOWED_HOSTS ?? local.API_PROXY_ALLOWED_HOSTS,
+    [API_PATH]: {
+      target,
+      changeOrigin: true,
+      secure: true,
+      logLevel: 'warn',
+      proxyTimeout: timeout,
+      timeout,
+    },
   };
 }
 
-export function createProxy(name, settings) {
-  assertProxyEnvironment(name);
+function readLocalEnvironment(environment) {
+  const file = resolve(process.cwd(), `.env.${environment}.local`);
+  if (!existsSync(file)) return {};
 
-  settings ??= readProxyEnvironment(name);
+  return Object.fromEntries(
+    readFileSync(file, 'utf8')
+      .split(/\r?\n/)
+      .map((line) => line.match(/^\s*([A-Z][A-Z0-9_]*)=(.*)\s*$/))
+      .filter(Boolean)
+      .map(([, key, value]) => [key, value.replace(/^(['"])(.*)\1$/, '$2')]),
+  );
+}
 
-  const value = settings.API_PROXY_TARGET ?? (name === 'dev' ? 'http://localhost:3300' : '');
-
+function validateTarget(value, environment) {
   let target;
 
   try {
     target = new URL(value);
   } catch {
-    throw new Error(
-      `Set API_PROXY_TARGET to an upstream origin ` + `in .env.${name}.local or the shell.`,
-    );
+    throw new Error(`API_PROXY_TARGET must be an absolute origin for ${environment}.`);
   }
 
   if (
@@ -101,67 +55,17 @@ export function createProxy(name, settings) {
     target.search ||
     target.hash
   ) {
-    throw new Error(
-      'API_PROXY_TARGET must be an HTTP(S) origin ' +
-        'without credentials, a path, query, or fragment. ' +
-        'Do not append /api/v1.',
-    );
+    throw new Error('API_PROXY_TARGET must contain only an http(s) origin.');
   }
 
-  if (name !== 'dev' && target.protocol !== 'https:') {
-    throw new Error('Prod CLI proxies require an HTTPS upstream.');
+  if (environment !== 'dev' && target.protocol !== 'https:') {
+    throw new Error(`API_PROXY_TARGET must use HTTPS for ${environment}.`);
   }
 
-  validateAllowedHost(target, settings);
+  return target.origin;
+}
 
-  const timeout = parseTimeout(settings.API_PROXY_TIMEOUT_MS);
-
-  return {
-    [API_CONTEXT]: {
-      target: target.origin,
-
-      changeOrigin: true,
-      secure: true,
-
-      ws: false,
-      followRedirects: false,
-
-      timeout,
-      proxyTimeout: timeout,
-
-      configure(proxy) {
-        proxy.prependListener('error', (error, request, response) => {
-          console.error('[API Proxy]', {
-            code: error?.code ?? 'UNKNOWN',
-            method: request?.method,
-            path: getSafeRequestPath(request),
-            upstream: target.origin,
-          });
-
-          if (
-            !response ||
-            !('writeHead' in response) ||
-            response.headersSent ||
-            response.writableEnded ||
-            response.destroyed
-          ) {
-            return;
-          }
-
-          const isTimeout = ['ETIMEDOUT', 'ESOCKETTIMEDOUT'].includes(error?.code);
-
-          response.writeHead(isTimeout ? 504 : 502, {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': 'no-store',
-          });
-
-          response.end(
-            JSON.stringify({
-              error: isTimeout ? 'api_gateway_timeout' : 'api_upstream_unavailable',
-            }),
-          );
-        });
-      },
-    },
-  };
+function readTimeout(rawValue) {
+  const value = Number(rawValue || 30_000);
+  return Number.isFinite(value) && value > 0 ? value : 30_000;
 }

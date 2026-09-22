@@ -1,5 +1,5 @@
 export interface AppEnvironment {
-  readonly name: 'dev' | 'prod';
+  readonly name: 'dev' | 'staging' | 'prod';
 
   readonly production: boolean;
 
@@ -9,12 +9,7 @@ export interface AppEnvironment {
 
   readonly socialImagePath: string;
 
-  /**
-   * REST API base URL.
-   *
-   * Same-origin absolute URL. The browser still reaches NestJS through the
-   * reverse proxy, while SSR can map its API origin into the hydration cache.
-   */
+  /** REST API base URL. */
   readonly apiBaseUrl: string;
 
 }

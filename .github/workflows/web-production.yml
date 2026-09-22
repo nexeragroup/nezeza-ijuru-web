@@ -1,0 +1,190 @@
+name: Web Production CI/CD
+
+on:
+  pull_request:
+    branches: [production]
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+concurrency:
+  group: web-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NODE_VERSION: 24.21.0
+  PNPM_VERSION: 12.3.4
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/nezeza-ijuru-web
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate build environments
+        env:
+          API_PROXY_TARGET: https://api.nezezaijuru.org
+          SITE_URL: https://nezezaijuru.org
+          ROBOTS_INDEXABLE: true
+        run: node scripts/generate-environment.mjs prod
+
+      - name: Type check
+        run: pnpm exec tsc -p tsconfig.app.json --noEmit
+
+      - name: Angular compiler check
+        run: pnpm exec ngc -p tsconfig.app.json --noEmit
+
+      - name: Unit tests
+        run: pnpm test --watch=false
+
+  image:
+    name: Publish production container image
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/production'
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate production API target
+        env:
+          API_PROXY_TARGET: ${{ vars.API_PROXY_TARGET }}
+        run: |
+          set -euo pipefail
+          test -n "${API_PROXY_TARGET}"
+          [[ "${API_PROXY_TARGET}" =~ ^https://[^/[:space:]]+$ ]]
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=production
+
+      - name: Build and push production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          build-args: |
+            CONFIGURATION=prod
+            API_PROXY_TARGET=${{ vars.API_PROXY_TARGET }}
+            SITE_URL=https://nezezaijuru.org
+            ROBOTS_INDEXABLE=true
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+  deploy:
+    name: Deploy production
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/production'
+    needs: image
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_PATH: /home/yves/nezeza-ijuru/web
+    steps:
+      - name: Check out deployment files
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: docker-compose.production.yml
+
+      - name: Validate production deployment secrets
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          set -euo pipefail
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS GHCR_USERNAME GHCR_TOKEN; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing production deployment secret for $name"
+              exit 1
+            fi
+          done
+
+      - name: Load deployment SSH key
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Configure SSH host verification
+        shell: bash
+        env:
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Copy production Compose definition
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          scp docker-compose.production.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.production.yml"
+
+      - name: Deploy and verify production
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          IMAGE: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          {
+            printf '%s\n' "$GHCR_TOKEN"
+            cat <<REMOTE_SCRIPT
+          set -euo pipefail
+          DEPLOY_PATH='${DEPLOY_PATH}'
+          IMAGE='${IMAGE}'
+          GHCR_USERNAME='${GHCR_USERNAME}'
+
+          printf '%s' "\$GHCR_TOKEN" | docker login ghcr.io --username "\$GHCR_USERNAME" --password-stdin
+          cd "\$DEPLOY_PATH"
+          WEB_IMAGE="\$IMAGE" docker compose --env-file .env.prod -f docker-compose.production.yml config --quiet
+          WEB_IMAGE="\$IMAGE" docker compose --env-file .env.prod -f docker-compose.production.yml pull web
+          WEB_IMAGE="\$IMAGE" docker compose --env-file .env.prod -f docker-compose.production.yml up -d --no-build --wait
+          curl --fail --silent --show-error --max-time 10 http://127.0.0.1:10301/health >/dev/null
+          REMOTE_SCRIPT
+          } | ssh "$DEPLOY_USER@$DEPLOY_HOST" 'read -r GHCR_TOKEN; export GHCR_TOKEN; bash -s'

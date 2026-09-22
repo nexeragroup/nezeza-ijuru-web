@@ -1,0 +1,190 @@
+name: Web Staging CI/CD
+
+on:
+  pull_request:
+    branches: [staging]
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: web-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NODE_VERSION: 24.21.0
+  PNPM_VERSION: 12.3.4
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/nezeza-ijuru-web-staging
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate build environments
+        env:
+          API_PROXY_TARGET: https://staging-api.nezezaijuru.org
+          SITE_URL: https://staging.nezezaijuru.org
+          ROBOTS_INDEXABLE: false
+        run: node scripts/generate-environment.mjs staging
+
+      - name: Type check
+        run: pnpm exec tsc -p tsconfig.app.json --noEmit
+
+      - name: Angular compiler check
+        run: pnpm exec ngc -p tsconfig.app.json --noEmit
+
+      - name: Unit tests
+        run: pnpm test --watch=false
+
+  image:
+    name: Publish staging container image
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/staging'
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate staging API target
+        env:
+          API_PROXY_TARGET: ${{ vars.API_PROXY_TARGET }}
+        run: |
+          set -euo pipefail
+          test -n "${API_PROXY_TARGET}"
+          [[ "${API_PROXY_TARGET}" =~ ^https://[^/[:space:]]+$ ]]
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=staging
+
+      - name: Build and push staging image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          build-args: |
+            CONFIGURATION=staging
+            API_PROXY_TARGET=${{ vars.API_PROXY_TARGET }}
+            SITE_URL=https://staging.nezezaijuru.org
+            ROBOTS_INDEXABLE=false
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+  deploy:
+    name: Deploy staging
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/staging'
+    needs: image
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      DEPLOY_PATH: /home/yves/nezeza-ijuru/staging
+    steps:
+      - name: Check out deployment files
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: docker-compose.staging.yml
+
+      - name: Validate staging deployment secrets
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.STAGING_DEPLOY_KNOWN_HOSTS }}
+          GHCR_USERNAME: ${{ secrets.STAGING_GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.STAGING_GHCR_TOKEN }}
+        run: |
+          set -euo pipefail
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS GHCR_USERNAME GHCR_TOKEN; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing staging deployment secret for $name"
+              exit 1
+            fi
+          done
+
+      - name: Load deployment SSH key
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+
+      - name: Configure SSH host verification
+        shell: bash
+        env:
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.STAGING_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Copy staging Compose definition
+        env:
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          scp docker-compose.staging.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.staging.yml"
+
+      - name: Deploy and verify staging
+        env:
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+          GHCR_USERNAME: ${{ secrets.STAGING_GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.STAGING_GHCR_TOKEN }}
+          IMAGE: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          {
+            printf '%s\n' "$GHCR_TOKEN"
+            cat <<REMOTE_SCRIPT
+          set -euo pipefail
+          DEPLOY_PATH='${DEPLOY_PATH}'
+          IMAGE='${IMAGE}'
+          GHCR_USERNAME='${GHCR_USERNAME}'
+
+          printf '%s' "\$GHCR_TOKEN" | docker login ghcr.io --username "\$GHCR_USERNAME" --password-stdin
+          cd "\$DEPLOY_PATH"
+          WEB_IMAGE="\$IMAGE" docker compose --env-file .env.staging -f docker-compose.staging.yml config --quiet
+          WEB_IMAGE="\$IMAGE" docker compose --env-file .env.staging -f docker-compose.staging.yml pull web
+          WEB_IMAGE="\$IMAGE" docker compose --env-file .env.staging -f docker-compose.staging.yml up -d --no-build --wait
+          curl --fail --silent --show-error --max-time 10 http://127.0.0.1:10302/health >/dev/null
+          REMOTE_SCRIPT
+          } | ssh "$DEPLOY_USER@$DEPLOY_HOST" 'read -r GHCR_TOKEN; export GHCR_TOKEN; bash -s'
